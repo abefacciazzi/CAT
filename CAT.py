@@ -41,6 +41,9 @@ import edit_by_mbt
 import cleanup_notes
 import export_lyrics
 import remove_notes_prokeys
+import pgrootnotes
+import fhp
+import pg_copy_od_solo
 
 import os
 import sys
@@ -213,8 +216,21 @@ if __name__ == '__main__':
     generalBtn = Tkinter.Button(secSupersets, text="General clean up", command= lambda: execute_this('auto_cleanup')) 
     generalBtn.grid(row=4, column=5, rowspan=1, sticky="WE", padx=5, pady=2)
 
+    secPGB = Tkinter.LabelFrame(root, text=" Pro Guitar/Bass: ")
+    secPGB.grid(row=5, columnspan=5, sticky='WE', \
+                 padx=5, pady=5, ipadx=5, ipady=5)
+
+    GenerateRootNotesBtn = Tkinter.Button(secPGB, text="Generate Root Notes", command= lambda: execute_this('pgrootnotes'))
+    GenerateRootNotesBtn.grid(row=1, column=1, rowspan=1, sticky="WE", padx=5, pady=2)
+
+    GenerateFretHandPositionsBtn = Tkinter.Button(secPGB, text="Generate Fret Hand Positions", command= lambda: execute_this('fhp'))
+    GenerateFretHandPositionsBtn.grid(row=1, column=2, rowspan=1, sticky="WE", padx=5, pady=2)
+
+    CopyODSoloFromBasicGtrBtn = Tkinter.Button(secPGB, text="Copy OD/Solo Markers from 5-lane", command= lambda: execute_this('pg_copy_od_solo'))
+    CopyODSoloFromBasicGtrBtn.grid(row=1, column=3, rowspan=1, sticky="WE", padx=5, pady=2)
+
     logo = Tkinter.Frame(root, bg="#000")
-    logo.grid(row=5, column=0, columnspan=10, sticky='WE', \
+    logo.grid(row=7, column=0, columnspan=10, sticky='WE', \
                  padx=0, pady=0, ipadx=0, ipady=0)
 
     path = os.path.join( sys.path[0], "banner.gif" )

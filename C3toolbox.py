@@ -1,3 +1,4 @@
+# -*- coding: cp1252 -*-
 from reaper_python import *
 import operator
 import decimal
@@ -58,7 +59,11 @@ tracks_array = { "PART DRUMS" : 999,
                  "BEAT": 999,
                  "PART DRUMS 2X": 999,
                  "VENUE": 999,
-                 "PART RHYTHM": 999
+                 "PART RHYTHM": 999,
+                 "PART REAL_GUITAR": 999,
+                 "PART REAL_GUITAR_22": 999,
+                 "PART REAL_BASS": 999,
+                 "PART REAL_BASS_22": 999
                  }
 array_instruments = {
         "Drums" : "PART DRUMS",
@@ -71,7 +76,11 @@ array_instruments = {
         "Vocals" : "PART VOCALS",
         "Harmony 1" : "HARM1",
         "Harmony 2" : "HARM2",
-        "Harmony 3" : "HARM3"
+        "Harmony 3" : "HARM3",
+        "Pro Guitar" : "PART REAL_GUITAR",
+        "Pro Guitar 22" : "PART REAL_GUITAR_22",
+        "Pro Bass" : "PART REAL_BASS",
+        "Pro Bass 22" : "PART REAL_BASS_22"
         }
 
 array_dropdownid = { "PART DRUMS" : 0,
@@ -85,7 +94,11 @@ array_dropdownid = { "PART DRUMS" : 0,
                      "PART REAL_KEYS_E": 4,
                      "PART DRUMS 2X": 5,
                      "PART RHYTHM": 6,
-                     "PART VOCALS": 7
+                     "PART VOCALS": 7,
+                     "PART REAL_GUITAR": 8,
+                     "PART REAL_GUITAR_22": 8,
+                     "PART REAL_BASS": 9,
+                     "PART REAL_BASS_22": 9
                  }
 
 array_dropdownvocals = { "PART VOCALS" : 0,
@@ -776,7 +789,15 @@ def prep_tracks():
         elif "BEAT" == trackname:
             tracks_array["BEAT"] = i
         elif "VENUE" == trackname:
-            tracks_array["VENUE"] = i        
+            tracks_array["VENUE"] = i  
+        elif "PART REAL_GUITAR" == trackname:
+            tracks_array["PART REAL_GUITAR"] = i
+        elif "PART REAL_GUITAR_22" == trackname:
+            tracks_array["PART REAL_GUITAR_22"] = i
+        elif "PART REAL_BASS" == trackname:
+            tracks_array["PART REAL_BASS"] = i  
+        elif "PART REAL_BASS_22" == trackname:
+            tracks_array["PART REAL_BASS_22"] = i          
         else:
             instrument = "???"
     #PM("\ntracks_array:\n")
@@ -4592,6 +4613,380 @@ def auto_vocalscleanup(instruments, compactphrase, trim, grid, tubespace, cleanu
     if compactharmonies == 1 and tracks_array['HARM1'] != 999 and tracks_array['HARM2'] != 999:
         compact_harmonies(prec, precgrid)
 
+def copy5laneodtopgb(instrument):
+
+    #instrument (PART REAL_GUITAR, PART REAL_GUITAR_22, PART REAL_BASS, PART REAL_BASS_22)
+
+    global maxlen
+   
+    instrument_track = tracks_array[instrument]
+    notes_dict = notesname_array[notesname_instruments_array[instrument]]
+   
+    array_instrument_data = process_instrument(instrument_track)
+    array_instrument_notes = array_instrument_data[1]
+    end_part = array_instrument_data[2]
+    start_part = array_instrument_data[3]
+    array_notesevents = create_notes_array(array_instrument_notes)
+    array_notes = array_notesevents[0]
+    array_events = array_notesevents[1]
+    notes_found = 0
+    result = 0
+ 
+    for x in range(0, len(array_notes)):
+        note = array_notes[x]
+        if note[2] == 116 or note[2] == 115:
+            notes_found = 1
+            result = RPR_MB( "Overdrive and/or Solo markers found. Do you want to delete them and proceed?", "Overdrive and/or Solo markers found", 1 )
+            break
+ 
+    if result == 1 or notes_found == 0:
+        array_temp = list(array_notes)
+        array_notes = []
+        for x in range(0, len(array_temp)):
+            note = array_temp[x]
+            if note[2] != 116 and note[2] != 115:
+                array_notes.append(note)
+    else:
+        return
+
+    pnotes = []
+    fnotes = []
+
+    for item in array_notes:
+        pnotes.append(item)
+
+    if "BASS" in instrument:
+        finstrument = "PART BASS"
+    else:
+        finstrument = "PART GUITAR"
+
+    finstrument_track = tracks_array[finstrument]
+    fnotes_dict = notesname_array[notesname_instruments_array[finstrument]]
+   
+    farray_instrument_data = process_instrument(finstrument_track)
+    farray_instrument_notes = farray_instrument_data[1]
+    farray_notesevents = create_notes_array(farray_instrument_notes)
+    farray_notes = farray_notesevents[0]
+
+    for item in farray_notes:
+        fnotes.append(item)
+
+    for item in fnotes:
+        if fnotes_dict[item[2]][1] == "od":
+            pnotes.append(item)
+        if fnotes_dict[item[2]][1] == "solo":
+            item[2] = 115
+            pnotes.append(item)
+
+    write_midi(instrument_track, [pnotes, array_events], end_part, start_part)
+
+def generate_fhp(instrument):
+    #instrument (PART REAL_GUITAR, PART REAL_GUITAR_22, PART REAL_BASS, PART REAL_BASS_22)
+
+    global maxlen
+   
+    instrument_track = tracks_array[instrument]
+    notes_dict = notesname_array[notesname_instruments_array[instrument]]
+   
+    array_instrument_data = process_instrument(instrument_track)
+    array_instrument_notes = array_instrument_data[1]
+    end_part = array_instrument_data[2]
+    start_part = array_instrument_data[3]
+    array_notesevents = create_notes_array(array_instrument_notes)
+    array_notes = array_notesevents[0]
+    array_events = array_notesevents[1]
+    notes_found = 0
+    result = 0
+ 
+    for x in range(0, len(array_notes)):
+        note = array_notes[x]
+        if notes_dict[note[2]][1] == "fhp":
+            notes_found = 1
+            result = RPR_MB( "Fret Hand Position markers found. Do you want to delete them and proceed?", "Fret Hand Position markers found", 1 )
+            break
+ 
+    if result == 1 or notes_found == 0:
+        array_temp = list(array_notes)
+        array_notes = []
+        for x in range(0, len(array_temp)):
+            note = array_temp[x]
+            if notes_dict[note[2]][1] != "fhp":
+                array_notes.append(note)
+    else:
+        return
+
+    
+
+    lastlocation = 0
+    lastfhp = 100
+
+    for x in range(0, len(array_notes)):
+        note = array_notes[x]
+        pitch = note[2]
+        location = note[1]
+        if location == lastlocation:
+            pass
+        else:
+            if pitch == 96 or pitch == 97 or pitch == 98 or pitch == 99 or pitch == 100 or pitch == 101:
+                velocity = int(str(note[3]), 16)
+                new_note = list(note)
+                openstring = 0
+                count = 0
+                chord = []
+                if "22" in instrument:
+                    fhp = 119
+                else:
+                    fhp = 114
+                for y in range(0, len(array_notes)):
+                    note1 = array_notes[x]
+                    note2 = array_notes[y]
+                    pitch = note2[2]
+                    if pitch == 96 or pitch == 97 or pitch == 98 or pitch == 99 or pitch == 100 or pitch == 101:
+                        if note1[1] == note2[1]:
+                            count = count + 1
+                            chord.append(note2)
+                            lastlocation = note2[1]
+                count2 = 0
+                numbers = []
+                for item in chord:
+                    numbers.append(int(str(item[3]), 16))
+                lowest = numbers[0]
+                highest = numbers[0]
+                for item in numbers[1:]:
+                    if item < lowest:
+                        lowest = item
+                    if item > highest:
+                        highest = item
+                if highest == 100:
+                    if lastfhp == 100:
+                        fhp = 101
+                    else:
+                        fhp = lastfhp
+                elif highest >= lastfhp:
+                    if highest <= lastfhp + 3:
+                        fhp = lastfhp
+                    else:
+                        fhp = lowest
+                elif highest < lastfhp:
+                    fhp = lowest
+                if fhp == 100 or fhp != lastfhp:
+                    if fhp == 100:
+                        fhp = 101
+                    if "22" in instrument:
+                        if fhp > 119:
+                            fhp = 119
+                    else:
+                        if fhp > 114:
+                            fhp = 114
+                    new_note[3] = hex(fhp)
+                    new_note[2] = 108
+                    array_notes.append(new_note)
+
+                    lastfhp = fhp
+                    
+                else:
+                    continue
+                    
+    write_midi(instrument_track, [array_notes, array_events], end_part, start_part)
+
+def pg_root_notes(instrument, estringlow, astring, dstring, gstring, bstring, estringhigh):
+ 
+    #instrument (PART REAL_GUITAR, PART REAL_GUITAR_22, PART REAL_BASS, PART REAL_BASS_22)
+    #all strings : tuning
+ 
+    global maxlen
+   
+    instrument_track = tracks_array[instrument]
+    notes_dict = notesname_array[notesname_instruments_array[instrument]]
+   
+    array_instrument_data = process_instrument(instrument_track)
+    array_instrument_notes = array_instrument_data[1]
+    end_part = array_instrument_data[2]
+    start_part = array_instrument_data[3]
+    array_notesevents = create_notes_array(array_instrument_notes)
+    array_notes = array_notesevents[0]
+    array_events = array_notesevents[1]
+    notes_found = 0
+    result = 0
+   
+    string1 = 0 + estringlow
+    string2 = 0 + astring
+    string3 = 0 + dstring
+    string4 = 0 + gstring
+    string5 = 0 + bstring
+    string6 = 0 + estringhigh
+ 
+    for x in range(0, len(array_notes)):
+        note = array_notes[x]
+        if notes_dict[note[2]][1] == "root_notes":
+            notes_found = 1
+            result = RPR_MB( "Root notes found. Do you want to delete them and proceed?", "Root notes found", 1 )
+            break
+ 
+    if result == 1 or notes_found == 0:
+        array_temp = list(array_notes)
+        array_notes = []
+        for x in range(0, len(array_temp)):
+            note = array_temp[x]
+            if notes_dict[note[2]][1] != "root_notes":
+                array_notes.append(note)
+    else:
+        return
+
+    lastlocation = 0
+ 
+    for x in range(0, len(array_notes)):
+        note = array_notes[x]
+        pitch = note[2]
+        location = note[1]
+        if location == lastlocation:
+            pass
+        else:
+            if pitch == 96 or pitch == 97 or pitch == 98 or pitch == 99 or pitch == 100 or pitch == 101:
+                #It's an expert note, let's add it as a root note
+                velocity = int(str(note[3]), 16)
+                new_note = list(note)
+                openstring = 0
+                count = 0
+                chord = []
+                for y in range(0, len(array_notes)):
+                    note1 = array_notes[x]
+                    note2 = array_notes[y]
+                    pitch = note2[2]
+                    if pitch == 96 or pitch == 97 or pitch == 98 or pitch == 99 or pitch == 100 or pitch == 101:
+                        if note1[1] == note2[1]:
+                            count = count + 1
+                            chord.append(note2)
+                            lastlocation = note2[1]
+                if count > 1:
+                    for item in chord:
+                        if(pitch == 96):
+                            note = item
+                            break
+                    for item in chord:
+                        if(pitch == 97):
+                            note = item
+                            break
+                    for item in chord:
+                        if(pitch == 98):
+                            note = item
+                            break
+                    for item in chord:
+                        if(pitch == 99):
+                            note = item
+                            break
+                    for item in chord:
+                        if(pitch == 100):
+                            note = item
+                            break
+                    for item in chord:
+                        if(pitch == 101):
+                            note = item
+
+                if(note[2] == 96):                    #Which string? Which note?
+                    openstring = 16 + string1
+                elif(note[2] == 97):
+                    openstring = 9 + string2
+                elif(note[2] == 98):
+                    openstring = 14 + string3
+                elif(note[2] == 99):
+                    openstring = 7 + string4
+                elif(note[2] == 100):
+                    openstring = 11 + string5
+                elif(note[2] == 101):
+                    openstring = 16 + string6
+
+                root = openstring + velocity - 100
+                roothigh = 15
+                rootlow = 4
+                while (root > roothigh):
+                    root = root - 12
+                    if(root < rootlow):
+                        break
+                while (root < rootlow):
+                    root = root + 12
+                    if(root > roothigh):
+                        break
+                new_note[2] = root
+            
+                array_notes.append(new_note)
+           
+    write_midi(instrument_track, [array_notes, array_events], end_part, start_part)
+
+def gpimport_drums(instrument, notedata, GPnotes, offset):
+
+    global maxlen
+   
+    instrument_track = tracks_array[instrument]
+    notes_dict = notesname_array[notesname_instruments_array[instrument]]
+   
+    array_instrument_data = process_instrument(instrument_track)
+    array_instrument_notes = array_instrument_data[1]
+    end_part = array_instrument_data[2]
+    start_part = array_instrument_data[3]
+    array_notesevents = create_notes_array(array_instrument_notes)
+    array_notes = array_notesevents[0]
+    array_events = array_notesevents[1]
+    notes_found = 0
+    result = 0
+
+    for x in range(0, len(array_notes)):
+        note = array_notes[x]
+        if notes_dict[note[2]][1] == "notes_x":
+            result = RPR_MB( "Expert notes found. Do you want to delete those, and the tom and animations markers and proceed?", "Expert notes found", 1 )
+            break
+ 
+    if result == 1 or notes_found == 0:
+        array_temp = list(array_notes)
+        array_notes = []
+        for x in range(0, len(array_temp)):
+            note = array_temp[x]
+            if notes_dict[note[2]][1] != "notes_x":
+                if "Tom" not in notes_dict[note[2]][0]:
+                    if notes_dict[note[2]][1] != "animations":
+                        array_notes.append(note)
+
+    w = 1920 #whole note
+    h = 960 #1/2 note
+    q = 480 #1/4 note
+    e = 240 #1/8 note
+    s = 120 #1/16
+    t = 60 #1/32
+    S = 30 #1/64
+    T = 15 #1/128
+
+    Tw = 1280 #triplet whole
+    Th = 640 #triplet 1/2
+    Tq = 320 #triplet 1/4
+    Te = 160 #triplet 1/8
+    Ts = 80 #triplet 1/16
+    Tt = 40 #triplet 1/32
+    TS = 20 #triplet 1/64
+    TT = 10 #triplet 1/128
+
+    selection = "E"
+    pitches = [["Ride Cymbal (blue)", [99]], ["Crash Cymbal (green)", [100]], ["Hi-Hat (yellow)", [98]], ["Snare (red)", [97]], ["Bass Drum", [96]], ["High Tom (yellow)", [98, 110]], ["Mid Tom (blue)", [99, 111]], ["Low/Floor Tom (green)", [100, 112]]]
+    velocity = hex(96)
+    channel = 90 #channel 1
+
+    offset1 = float(offset)
+    offset2 = q * offset1
+    offset3 = int(offset2)
+
+    for item in GPnotes:
+        location = item[1] + offset3
+        if item[3] == "normal":
+            for note in item[2]:
+                for n in notedata:
+                    if n[2] == 0 and int(n[0]) == note:
+                        for data in pitches:
+                            if data[0] == n[1]:
+                                for i in data[1]:
+                                    array_notes.append([selection, location, i, velocity, t, channel])
+
+    #array_notes.append([selection, 0, pitches[0][1][0], velocity, 60, channel])
+
+    write_midi(instrument_track, [array_notes, array_events], end_part, start_part)
 
 def startup():
     global instrument_ticks
