@@ -1,4 +1,5 @@
 # -*- coding: cp1252 -*-
+# -*- additions by: Alternity, kueller -*-
 from reaper_python import *
 import operator
 import decimal
