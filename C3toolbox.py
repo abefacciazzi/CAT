@@ -2281,7 +2281,7 @@ def drums_animations(instrument, crash, soft, flam, grid, cymbals, how, mute):
     array_notesevents = create_notes_array(array_instrument_notes)
     array_notes = array_notesevents[0]
     array_events = array_notesevents[1]
-    array_promarkers = []
+    array_promarkers = {}
     notes_found = 0
     result = 0
 
@@ -2307,13 +2307,16 @@ def drums_animations(instrument, crash, soft, flam, grid, cymbals, how, mute):
     for x in range(0, len(array_notes)):
         note = array_notes[x]
         if note[2] >= 110 and note[2] <= 112:
-            array_promarkers.append(note[1])
+            if note[1] in array_promarkers:
+                array_promarkers[note[1]].append(note[2])
+            else:
+                array_promarkers[note[1]] = [note[2]]
 
     for x in range(0, len(array_notes)):
         note = array_notes[x]
         if notes_dict[note[2]][1] == "notes_x":
             #It's an expert note, let's add it as animation
-            if note[1] in array_promarkers and note[2] > 97:
+            if note[1] in array_promarkers and (note[2]+12) in array_promarkers[note[1]]:
                 pitch = promarkers[note[2]]
             else:
                 pitch = note[2]
