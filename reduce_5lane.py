@@ -441,6 +441,6 @@ def launch(instrument):
     form.mainloop()
 
 if __name__ == '__main__':
-    #launch('')
-    C3toolbox.startup()
-    C3toolbox.reduce_5lane('PART GUITAR', [0, 1, 1], ['e', 0, 1, 1], ['q', 1, 1, 0], ['h', 1, 1, 0], [1, 1, 1], 1, 1, ['n', 'n', 'a'], 1, 20, 'h')
+    launch('')
+    #C3toolbox.startup()
+    #C3toolbox.reduce_5lane('PART GUITAR', [0, 1, 1], ['e', 0, 1, 1], ['q', 1, 1, 0], ['h', 1, 1, 0], [1, 1, 1], 1, 1, ['n', 'n', 'a'], 1, 20, 'h')

@@ -64,6 +64,9 @@ def launch():
     array_instrument_notes = array_instrument_data[1]
     array_notesevents = C3toolbox.create_notes_array(array_instrument_notes)
     curlevel = C3toolbox.level(array_notesevents[0], instrument_track)
+    if curlevel is None:
+        form.destroy()
+        return
 
     # STEP 1
     
@@ -168,8 +171,8 @@ def launch():
     form.mainloop()
 
 if __name__ == '__main__':
-    #launch()
-    C3toolbox.startup()
-    C3toolbox.remove_notes('e','x','PART REAL_KEYS_E',20,0)
+    launch()
+    #C3toolbox.startup()
+    #C3toolbox.remove_notes('q','x','PART GUITAR',20,0,0,0,0)
     #(what,level,instrument,how,same,sparse,bend,selected)
     #example: C3toolbox.remove_notes('q', 'x', '', 10, 0, 0, 0, 0)

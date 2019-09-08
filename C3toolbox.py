@@ -234,6 +234,10 @@ def count_notes(array, start, end, notes, what, instrument):
     for x in range(0, len(array)):
         #PM("\n")
         #PM(notes_dict[array[x][2]][1])
+        if array[x][2] not in notes_dict:
+            invalid_note_mb(array[x], instrumentname)
+            return {}
+
         if (((start or end) and array[x][1] >= start and array[x][1] <= end) or (start == 0 and end == 0)) and ((what == 0 and array[x][2] in notes) or (what == 1 and notes_dict[array[x][2]][1] in notes)):
             if str(array[x][2]) in array_count:
                 array_count[str(array[x][2])]+=1
@@ -252,6 +256,10 @@ def mbt(position): #Returns an array with 0. measure, 1. beat, 2. ticks, 3. tick
             b = int(math.floor(relative_position/measures_array[x][4]))+1
             t = int(relative_position-((b-1)*measures_array[x][4]))
     return [m, b, t, relative_position]
+
+def invalid_note_mb(note, instrumentname):
+    m,b = mbt(int(note[1]))[:2]
+    RPR_MB("Invalid note %d found in %s at position %d.%d" % (note[2], instrumentname, m, b), "Invalid note", 0)
 
 def selected_range(array): #Returns an array with the first selected note at 0 and last selected note at 1
     #array must either be the notes or the events array, with absolute location at 1
@@ -363,6 +371,10 @@ def level(array, instrument):
     for x in range(0, len(array)):
         note = array[x]
         if note[0] == 'e':
+            if note[2] not in notes_dict:
+                invalid_note_mb(note, instrumentname)
+                return None
+
             if notes_dict[note[2]][1] == "notes_x":
                 return 'x'
             elif notes_dict[note[2]][1] == "notes_h":
@@ -870,6 +882,9 @@ def polish_notes(instrument, grid, tolerance, selected):
 
     for x in range(0, len(array_notes)):
         note = array_notes[x]
+        if note[2] not in notes_dict:
+            invalid_note_mb(note, instrumentname)
+            return
         position = mbt(note[1])[3]
         if (selected and mbt(int(note[1]))[0] >= first_measure and mbt(int(note[1]))[0] <= last_measure) or selected == 0:
             if "notes" in notes_dict[note[2]][1]:
@@ -1104,6 +1119,9 @@ def remove_notes_prokeys(what,level,instrument,how,selected):
     #We filter out all OD, BRE, markers, etc.
     for x in range(0,len(array_notesevents[0])):
         note = array_notesevents[0][x]
+        if note[2] not in notes_dict:
+            invalid_note_mb(note, instrumentname)
+            return
         this_measure = mbt(int(note[1]))[0]
         if notes_dict[note[2]][1] == level and (selected == 0 or (selected and (this_measure >= first_measure and this_measure <= last_measure))):
             array_validnotes.append(note)
@@ -1216,6 +1234,9 @@ def remove_notes(what,level,instrument,how,same,sparse,bend,selected):
     for x in range(0,len(array_notesevents[0])):
         note = array_notesevents[0][x]
         this_measure = mbt(int(note[1]))[0]
+        if note[2] not in notes_dict:
+            invalid_note_mb(note, instrumentname)
+            return
         if notes_dict[note[2]][1] == level and (selected == 0 or (selected and (this_measure >= first_measure and this_measure <= last_measure))):
             array_validnotes.append(note)
         else:
@@ -2288,6 +2309,10 @@ def drums_animations(instrument, crash, soft, flam, grid, cymbals, how, mute):
     if mute == 0:
         for x in range(0, len(array_notes)):
             note = array_notes[x]
+            if note[2] not in notes_dict:
+                invalid_note_mb(note, "PART DRUMS")
+                return
+
             if notes_dict[note[2]][1] == "animations":
                 notes_found = 1
                 result = RPR_MB( "Drums animations notes found. Do you want to delete them and proceed?", "Animations notes found", 1 )
@@ -2557,6 +2582,9 @@ def reduce_singlenotes(instrument, level, selected):
         #return
     for x in range(0,len(array_notesevents[0])):
         note = array_notesevents[0][x]
+        if note[2] not in notes_dict:
+            invalid_note_mb(note, instrumentname)
+            return
         this_measure = mbt(int(note[1]))[0]
         if notes_dict[note[2]][1] == leveltext and (selected == 0 or (selected and (this_measure >= first_measure and this_measure <= last_measure))):
             array_validnotes.append(note)
@@ -2697,6 +2725,9 @@ def reduce_chords(instrument, level, option, selected):
         #return
     for x in range(0,len(array_notesevents[0])):
         note = array_notesevents[0][x]
+        if note[2] not in notes_dict:
+            invalid_note_mb(note, instrumentname)
+            return
         this_measure = mbt(int(note[1]))[0]
         if notes_dict[note[2]][1] == leveltext and (selected == 0 or (selected and (this_measure >= first_measure and this_measure <= last_measure))):
             array_validnotes.append(note)
@@ -3000,6 +3031,9 @@ def copy_od_solo():
     
     for x in range(0, len(array_notesevents[0])):
         note = array_notesevents[0][x]
+        if note[2] not in notes_dict:
+            invalid_note_mb(note, instrumentname)
+            return
         if notes_dict[note[2]][1] == "od":
             od = 1
         elif notes_dict[note[2]][1] == "solo":
@@ -3060,6 +3094,9 @@ def add_slides(instrument, selected):
     
     for x in range(0,len(array_notesevents[0])):
         note = array_notesevents[0][x]
+        if note[2] not in notes_dict:
+            invalid_note_mb(note, instrumentname)
+            return
         this_measure = mbt(int(note[1]))[0]
         if notes_dict[note[2]][1] == leveltext and (selected == 0 or (selected and note[0] == 'e')):
             array_validnotes.append(note)
@@ -3424,7 +3461,7 @@ def unpitch(instrument, character, selected):
     
     for x in range(0,len(array_notesevents[0])):
         note = array_notesevents[0][x]
-        if notes_dict[note[2]][1] == leveltext and (selected == 0 or (selected and note[0] == 'e')):
+        if note[2] in notes_dict and notes_dict[note[2]][1] == leveltext and (selected == 0 or (selected and note[0] == 'e')):
             position = note[1]
             found = 0
             for j in range(0, len(array_events)):
@@ -3462,7 +3499,7 @@ def pitch(instrument, selected):
     
     for x in range(0,len(array_notesevents[0])):
         note = array_notesevents[0][x]
-        if notes_dict[note[2]][1] == leveltext and (selected == 0 or (selected and note[0] == 'e')):
+        if note[2] in notes_dict and notes_dict[note[2]][1] == leveltext and (selected == 0 or (selected and note[0] == 'e')):
             position = note[1]
             found = 0
             for j in range(0, len(array_events)):
@@ -3497,7 +3534,7 @@ def hide_lyrics(instrument, selected):
     
     for x in range(0,len(array_notesevents[0])):
         note = array_notesevents[0][x]
-        if notes_dict[note[2]][1] == leveltext and (selected == 0 or (selected and note[0] == 'e')):
+        if note[2] in notes_dict and notes_dict[note[2]][1] == leveltext and (selected == 0 or (selected and note[0] == 'e')):
             position = note[1]
             found = 0
             for j in range(0, len(array_events)):
@@ -3532,6 +3569,9 @@ def create_phrase_markers(instrument, grid, mute):
     full = 0
     for x in range(0,len(array_notesevents[0])):
         note = array_notesevents[0][x]
+        if note[2] not in notes_dict:
+            invalid_note_mb(note, instrumentname)
+            return
         if notes_dict[note[2]][1] == "phrase" or notes_dict[note[2]][1] == "od":
             full = 1
             break
@@ -3673,6 +3713,9 @@ def trim_phrase_markers(instrument, grid):
     #Let's create an array of notes
     for x in range(0,len(array_notesevents[0])):
         note = array_notesevents[0][x]
+        if note[2] not in notes_dict:
+            invalid_note_mb(note, instrumentname)
+            return
         if notes_dict[note[2]][1] == "phrase":
             array_validphrases.append(note)
         elif notes_dict[note[2]][1] == "notes" or notes_dict[note[2]][1] == "percussion":
@@ -3810,6 +3853,9 @@ def compact_harmonies(precedence, grid):
     #Let's create an array of notes
     for x in range(0,len(array_notesevents_h1[0])):
         note = array_notesevents_h1[0][x]
+        if note[2] not in notes_dict:
+            invalid_note_mb(note, "HARM1")
+            return
         if notes_dict[note[2]][1] == "phrase":
             array_validnotes_h1.append(note)
         else:
@@ -3818,6 +3864,9 @@ def compact_harmonies(precedence, grid):
     #Let's create an array of notes
     for x in range(0,len(array_notesevents_h2[0])):
         note = array_notesevents_h2[0][x]
+        if note[2] not in notes_dict:
+            invalid_note_mb(note, "HARM2")
+            return
         if notes_dict[note[2]][1] == "phrase":
             array_validnotes_h2.append(note)
         else:
@@ -3827,6 +3876,9 @@ def compact_harmonies(precedence, grid):
         array_lyrics_h3 = array_notesevents_h3[1]
         for x in range(0,len(array_notesevents_h3[0])):
             note = array_notesevents_h3[0][x]
+            if note[2] not in notes_dict:
+                invalid_note_mb(note, "HARM3")
+                return
             if notes_dict[note[2]][1] == "phrase":
                 array_validnotes_h3.append(note)
             else:
@@ -3942,6 +3994,9 @@ def add_vocalsoverdrive(instrument, frequency, mute):
     full = 0
     for x in range(0,len(array_notes)):
         note = array_notes[x]
+        if note[2] not in notes_dict:
+            invalid_note_mb(note, instrumentname)
+            return
         if notes_dict[note[2]][1] == "od":
             full = 1
             break
@@ -4038,6 +4093,9 @@ def cleanup_phrases(instrument):
     #This doesn't work, Reaper doesn't save selection status for markers. We leave it here in case we find a workaround
     for x in range(0,len(array_notesevents[0])):
         note = array_notesevents[0][x]
+        if note[2] not in notes_dict:
+            invalid_note_mb(note, instrumentname)
+            return
         if notes_dict[note[2]][1] == "phrase":
             array_phrases.append(note)
         elif notes_dict[note[2]][1] == "od":
@@ -4115,6 +4173,9 @@ def compact_phrases():
         #Let's create an array of notes
         for x in range(0,len(array_notesevents_h1[0])):
             note = array_notesevents_h1[0][x]
+            if note[2] not in notes_dict:
+                invalid_note_mb(note, "HARM1")
+                return
             if notes_dict[note[2]][1] == "phrase":
                 array_validnotes_h1.append(note)
             else:
@@ -4123,6 +4184,9 @@ def compact_phrases():
         #Let's create an array of notes
         for x in range(0,len(array_notesevents_h2[0])):
             note = array_notesevents_h2[0][x]
+            if note[2] not in notes_dict:
+                invalid_note_mb(note, "HARM2")
+                return
             if notes_dict[note[2]][1] == "phrase":
                 array_validnotes_h2.append(note)
             else:
@@ -4235,6 +4299,10 @@ def create_keys_animations():
 
     for x in range(0, len(array_stdkeys)):
         note = array_stdkeys[x]
+        if note[2] not in notes_dict:
+            invalid_note_mb(note, "PART REAL_KEYS_X")
+            return
+
         if notes_dict[note[2]][1] == "notes" or notes_dict[note[2]][1] == "shift":
             array_temp.append(note)
             
@@ -4290,6 +4358,8 @@ def reduce_5lane(instrument, levels, hard, medium, easy, chords, reduceChords, r
 
     #Check if Hard is full. If so, prompt to confirm deletion
     notes = count_notes(array_notes, 0, 0, ["notes_h"], 1, instrument_track)
+    if notes == {}:
+        return
     
     result = 0
     if notes != [] and levels[0] == 1 and mute == 0:
@@ -4302,6 +4372,9 @@ def reduce_5lane(instrument, levels, hard, medium, easy, chords, reduceChords, r
         array_notes = []
         for x in range(0,len(array_full)):
             note = array_full[x]
+            if note[2] not in notes_dict:
+                invalid_note_mb(note, instrument)
+                return
             if notes_dict[note[2]][1] != 'notes_h':
                 array_notes.append(note)
         
@@ -4374,6 +4447,9 @@ def reduce_5lane(instrument, levels, hard, medium, easy, chords, reduceChords, r
         array_notes = []
         for x in range(0,len(array_full)):
             note = array_full[x]
+            if note[2] not in notes_dict:
+                invalid_note_mb(note, instrument)
+                return
             if notes_dict[note[2]][1] != 'notes_m':
                 array_notes.append(note)
 
@@ -4452,6 +4528,9 @@ def reduce_5lane(instrument, levels, hard, medium, easy, chords, reduceChords, r
         array_notes = []
         for x in range(0,len(array_full)):
             note = array_full[x]
+            if note[2] not in notes_dict:
+                invalid_note_mb(note, instrument)
+                return
             if notes_dict[note[2]][1] != 'notes_e':
                 array_notes.append(note)
                 
@@ -4638,6 +4717,9 @@ def copy5laneodtopgb(instrument):
  
     for x in range(0, len(array_notes)):
         note = array_notes[x]
+        if note[2] not in notes_dict:
+            invalid_note_mb(note, instrument)
+            return
         if note[2] == 116 or note[2] == 115:
             notes_found = 1
             result = RPR_MB( "Overdrive and/or Solo markers found. Do you want to delete them and proceed?", "Overdrive and/or Solo markers found", 1 )
@@ -4676,6 +4758,9 @@ def copy5laneodtopgb(instrument):
         fnotes.append(item)
 
     for item in fnotes:
+        if item[2] not in fnotes_dict:
+            invalid_note_mb(item, finstrument)
+            return
         if fnotes_dict[item[2]][1] == "od":
             pnotes.append(item)
         if fnotes_dict[item[2]][1] == "solo":
@@ -4704,6 +4789,9 @@ def generate_fhp(instrument):
  
     for x in range(0, len(array_notes)):
         note = array_notes[x]
+        if note[2] not in notes_dict:
+            invalid_note_mb(note, instrument)
+            return
         if notes_dict[note[2]][1] == "fhp":
             notes_found = 1
             result = RPR_MB( "Fret Hand Position markers found. Do you want to delete them and proceed?", "Fret Hand Position markers found", 1 )
@@ -4822,6 +4910,9 @@ def pg_root_notes(instrument, estringlow, astring, dstring, gstring, bstring, es
  
     for x in range(0, len(array_notes)):
         note = array_notes[x]
+        if note[2] not in notes_dict:
+            invalid_note_mb(note, instrument)
+            return
         if notes_dict[note[2]][1] == "root_notes":
             notes_found = 1
             result = RPR_MB( "Root notes found. Do you want to delete them and proceed?", "Root notes found", 1 )

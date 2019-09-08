@@ -44,6 +44,9 @@ def launch():
     array_instrument_notes = array_instrument_data[1]
     array_notesevents = C3toolbox.create_notes_array(array_instrument_notes)
     curlevel = C3toolbox.level(array_notesevents[0], instrument_track)
+    if curlevel is None:
+        form.destroy()
+        return
     
     helpLf = Tkinter.Frame(form)
     helpLf.grid(row=0, column=1, sticky='NS', padx=5, pady=5)
