@@ -1129,7 +1129,35 @@ def remove_notes_prokeys(what,level,instrument,how,selected):
             array_notes.append(note)
     array_validpositions = []
 
-    
+    # If the array is not empty prompt to overwrite
+    result = 6 # yes
+    if len(array_validnotes) > 0:
+        result = RPR_MB("Existing notes found in difficulty %s. Overwrite?" % instrumentname, "Reduce Pro Keys", 3)
+
+    # Copy the next highest pro keys difficulty into the current one as a base.
+    if result == 6:
+        array_validnotes = []
+        level_array_tmp = ['x', 'h', 'm', 'e']
+        curr_level = instrumentname[-1].lower()
+        curr_level_i = level_array_tmp.index(curr_level)
+        upper_level = level_array_tmp[curr_level_i-1]
+
+        upper_instrument_name = "PART REAL_KEYS_"+upper_level.upper()
+        upper_instrument_data = process_instrument(tracks_array[upper_instrument_name])
+        upper_instrument_notes = upper_instrument_data[1]
+        upper_notesevents = create_notes_array(upper_instrument_notes)
+        
+        for x in range(0,len(upper_notesevents[0])):
+            note = upper_notesevents[0][x]
+            if note[2] not in notes_dict:
+                invalid_note_mb(note, upper_instrument_name)
+                return
+            this_measure = mbt(int(note[1]))[0]
+            if notes_dict[note[2]][1] == "notes" and (selected == 0 or (this_measure >= first_measure and this_measure <= last_measure)):
+                array_validnotes.append(note)
+            else:
+                array_notes.append(note)
+
     for x in range(0,len(base_array_notesevents[0])):
         note = base_array_notesevents[0][x]
         this_measure = mbt(int(note[1]))[0]
@@ -5097,7 +5125,15 @@ def startup():
         config[k.strip()] = v.strip()
     f.close()
     
-    prep_tracks()
+    try:
+        prep_tracks()
+    except UnicodeDecodeError:
+        RPR_MB("Invalid file name found in one of your tracks. "\
+                "Make sure there are no items with special characters in your project. \n\n"\
+                "The culprit is usually the song file itself. Look for accents and symbols. " \
+                "You can rename an item in Item Properties (F2).", 
+                "Unicode Error", 0)
+        raise
     #We start off getting the end event and the instrument ticks
     array_instrument_data = process_instrument(tracks_array["EVENTS"]) #This toggles the processing of the EVENTS chunk that sets end_event
     instrument_ticks = array_instrument_data[0] #Number of ticks per measure of the instrument

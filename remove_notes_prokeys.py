@@ -19,20 +19,20 @@ def execute(sel):
     array_grid = { "1" : "w", "1/2" : "h", "1/4" : "q", "1/8" : "e", "1/16" : "s" }
     #RPR_ShowConsoleMsg(sel)
     tolerance = 20
-    hard = str(hChkvar.get())
-    medium = str(mChkvar.get())
-    easy = str(eChkvar.get())
+    hard = hChkvar.get()
+    medium = mChkvar.get()
+    easy = eChkvar.get()
 
     #RPR_ShowConsoleMsg(array_grid[grid]+" - "+array_levels[level][0]+" - "+instrument+" - "+tolerance+" - "+same+" - "+sparse+" - "+bend+" - "+str(sel))
     #RPR_ShowConsoleMsg(instrument+" - "+level+" - "+grid+" - "+tolerance+" - "+bend+" - "+same+" - "+sparse)
 
     C3toolbox.startup()
     C3toolbox.PM("hard: ")
-    C3toolbox.PM(hard)
+    C3toolbox.PM(str(hard))
     C3toolbox.PM("medium: ")
-    C3toolbox.PM(medium)
+    C3toolbox.PM(str(medium))
     C3toolbox.PM("easy: ")
-    C3toolbox.PM(easy)
+    C3toolbox.PM(str(easy))
     if hard:
         C3toolbox.PM("go hard")
         C3toolbox.remove_notes_prokeys('s','h','PART REAL_KEYS_H',20,0)
