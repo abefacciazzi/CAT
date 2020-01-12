@@ -4597,13 +4597,13 @@ def reduce_5lane(instrument, levels, hard, medium, easy, chords, reduceChords, r
         if instrument == 'PART DRUMS' or instrument == 'PART DRUMS 2X':
             pitchbend = 0
 
+        remove_notes(easy[0],'e',instrument,tolerance,easy[1],easy[2],pitchbend,0)
+
         if (instrument == 'PART GUITAR' or instrument == 'PART BASS' or instrument == 'PART KEYS' or instrument == 'PART RHYTHM') and reduceNotes:
             reduce_singlenotes(instrument, 'e', 0)
 
         if (instrument == 'PART GUITAR' or instrument == 'PART BASS' or instrument == 'PART KEYS' or instrument == 'PART RHYTHM') and reduceChords:
             reduce_chords(instrument, 'e', chords[0], 0)
-           
-        remove_notes(easy[0],'e',instrument,tolerance,easy[1],easy[2],pitchbend,0)
 
         #Run simplify_roll
         simplify_roll(instrument, 'e', 0)
