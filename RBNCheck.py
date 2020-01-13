@@ -1175,9 +1175,11 @@ def handle_vocals(content, part_name ):
                     global_harm2_phase_end.append( notas_item.pos )            
                 debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ),notas_item.valor, notas_item.pos ), True )         
         #If we are looping HARM3 we assume we dont have any phrase marker, we take HARM2 markers as baaseline
+        # Actually, we should check if these markers exist first before assuming things.
         if( part_name == "HARM3" ):
-            phrase_start = global_harm2_phase_start
-            phrase_end = global_harm2_phase_end
+            if len(phrase_end) == 0:
+                phrase_start = global_harm2_phase_start
+                phrase_end = global_harm2_phase_end
         #
         reserved_words = ['[play]','[mellow]','[intense]','[idle]','[idle_intense]','[idle_realtime]']
         punctuation = ['?','!']
