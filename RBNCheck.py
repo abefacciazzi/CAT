@@ -1181,7 +1181,8 @@ def handle_vocals(content, part_name ):
                 phrase_start = global_harm2_phase_start
                 phrase_end = global_harm2_phase_end
         #
-        reserved_words = ['[play]','[mellow]','[intense]','[idle]','[idle_intense]','[idle_realtime]']
+        reserved_words = ['[play]','[mellow]','[intense]','[idle]','[idle_intense]','[idle_realtime]'\
+            ,'[tambourine_start]','[tambourine_end]','[cowbell_start]','[cowbell_end]','[clap_start]','[clap_end]']
         punctuation = ['?','!']
         warning_characters = ['.']
         warning_characters_error = ['period/dot']
