@@ -65,6 +65,11 @@ def execute_this(function):
         root.destroy()
         subwindow.launch()
     
+def RunCARV():
+    global root
+    root.destroy()
+    import RBNCheck
+
 if __name__ == '__main__':
     root = Tkinter.Tk()
     root.wm_title('C3 Reaper Automation Project')
@@ -229,8 +234,15 @@ if __name__ == '__main__':
     CopyODSoloFromBasicGtrBtn = Tkinter.Button(secPGB, text="Copy OD/Solo Markers from 5-lane", command= lambda: execute_this('pg_copy_od_solo'))
     CopyODSoloFromBasicGtrBtn.grid(row=1, column=3, rowspan=1, sticky="WE", padx=5, pady=2)
 
+    secValidation = Tkinter.LabelFrame(root, text=" Validation: ")
+    secValidation.grid(row=6, columnspan=5, sticky='WE', \
+                 padx=5, pady=5, ipadx=5, ipady=5)
+
+    CARVBtn = Tkinter.Button(secValidation, text="Run C3 Automatic Rules Validator (CARV)", command=RunCARV )
+    CARVBtn.grid(row=1, column=1, rowspan=1, sticky="WE", padx=5, pady=2)
+
     logo = Tkinter.Frame(root, bg="#000")
-    logo.grid(row=7, column=0, columnspan=10, sticky='WE', \
+    logo.grid(row=9, column=0, columnspan=10, sticky='WE', \
                  padx=0, pady=0, ipadx=0, ipady=0)
 
     path = os.path.join( sys.path[0], "banner.gif" )
