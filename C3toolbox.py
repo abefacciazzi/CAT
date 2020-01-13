@@ -7,6 +7,7 @@ import base64
 import math
 import binascii
 import os
+import re
 import sys
 from C3notes import *
 
@@ -3367,7 +3368,7 @@ def check_capitalization(instrument, selected):
                 if first_letter == "'":
                     quotes = 1
                     first_letter = event[3][1]
-                if first_letter.isupper() and event[3] != 'I' and "I'" not in event[3]:
+                if first_letter.isupper() and not re.match("I[#^$]{0,2}$", event[3]) and "I'" not in event[3]:
                     result = 1
                     check = 1
                     #If we find both, we ask the user whether to abort or proceed
