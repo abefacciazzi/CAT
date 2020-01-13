@@ -1,3 +1,15 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Hiya, I'm Sean. I'm making even more modifications to this script for C3 purposes.
+#
+# 2020-01-13, BUGFIX : Import all of reaper_python to make loading from CAT happy.
+# 2019-12-08, BUGFIX : Rewrote part finding to actually work in REAPER 6+.
+# 2019-12-08, BUGFIX : Treat "PART REAL _KEYS_H" as "PART REAL_KEYS_H" because the C3 Template has this error.
+# 2019-12-08, BUGFIX : Change the regex searches to work with REAPER 6+ output, as well as remaining compatible with 4.22.
+# 2019-12-08, BUGFIX : Added [idle_intense] and [idle_realtime] to the reserved word list.
+# 2019-12-08, FEATURE: Display a console window to show visual feedback on the progress of the script.
+#
 # Hi, I'm pksage. I'm making some small modifications to this script for C3 purposes. 
 #
 # 2014-01-21, BUGFIX : Fixed errors where HARM1-HARM3 were not being detected because of how the MIDI take was named
@@ -94,6 +106,7 @@ import string
 import webbrowser
 from collections import Counter
 from ConfigParser import SafeConfigParser
+from reaper_python import *
 from reaper_python import RPR_ShowConsoleMsg as console_msg
 
 # (start) Config section
@@ -289,7 +302,7 @@ def handle_drums( content, part_name ):
 		#all_e_notes = re.findall("^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+)$", content, re.MULTILINE)
 		#all_x_notes = re.findall("^<(X\s[a-f,0-9]+\s[a-f,0-9]+)$", content, re.I | re.MULTILINE)
 		#all_notes = all_x_notes + all_e_notes
-		all_notes = re.findall("(?:^<(X\\s[a-f,0-9]+\\s[a-f,0-9]+)$|^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+)$)", content, re.MULTILINE)
+		all_notes = re.findall("(?:^<([X,x]\\s[a-f,0-9]+\\s[a-f,0-9]+)|^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+)$)", content, re.MULTILINE)
 		
 		noteloc = 0;		
 		for note in all_notes:
@@ -318,8 +331,8 @@ def handle_drums( content, part_name ):
 				debug("Starts with 8: Midi # {}, MBT {}, Type {} ".format( str( decval ), str( noteloc ),str( midi_parts[2] ) ) )
 				debug( "{} at {}".format( num_to_text[decval], format_location( noteloc ) ), True )
 			else:
-				#debug("Text Event: Midi # {}, MBT {}, Type {}, Extra {} ".format( str( decval ), str( noteloc ),str( midi_parts[1] ),str( midi_parts[2] ) ) )
-				#debug( "{} at {}".format( "None", format_location( noteloc ) ), True )
+				debug("Text Event: Midi # {}, MBT {}, Type {}, Extra {} ".format( str( decval ), str( noteloc ),str( midi_parts[1] ),str( midi_parts[2] ) ) )
+				debug( "{} at {}".format( "None", format_location( noteloc ) ), True )
 				debug("")		
 		#Get all kicks in Easy and check for errors (K+GEM)
 		#Also we check for non existent gems on expert
@@ -327,7 +340,7 @@ def handle_drums( content, part_name ):
 		debug( "=================== EASY DRUMS: Error Kick + Gem ===================", True )
 		for notas_item in filter(lambda x: x.valor == 60, l_gems):
 			#We got all kicks positions, now we want to seearch if there is any other gem in the same position as the kick
-			for notas_item_2 in filter(lambda x: x.pos == notas_item.pos and ( x.valor >=61 and  x.valor <=65) , l_gems):
+			for notas_item_2 in filter(lambda x: x.pos == notas_item.pos and ( x.valor >=61 and	x.valor <=65) , l_gems):
 				if( notas_item_2.valor > 0 ):
 					debug( "Found Kick + Gem [ {} ] at {} - ( {},{} )".format( num_to_text[ notas_item_2.valor ], format_location( notas_item.pos ), notas_item_2.valor, notas_item.pos ), True )
 					localTmpl['drums_kick_gem'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> Kick + {}</span></div>'.format( format_location( notas_item.pos ), num_to_text[ notas_item_2.valor ] )
@@ -342,7 +355,7 @@ def handle_drums( content, part_name ):
 		extra_gems_m = Counter()		
 		for notas_item in filter(lambda x: x.valor == 72, l_gems):
 			#We got all kicks positions, now we want to seearch if there is any other gem in the same position as the kick
-			for notas_item_2 in filter(lambda x: x.pos == notas_item.pos and ( x.valor >=73 and  x.valor <=76) , l_gems):
+			for notas_item_2 in filter(lambda x: x.pos == notas_item.pos and ( x.valor >=73 and	x.valor <=76) , l_gems):
 				counter_global[(notas_item.pos)] += 1
 				extra_gems_m[ ( notas_item_2.valor, notas_item.pos ) ] += 1
 				
@@ -452,7 +465,7 @@ def handle_drums( content, part_name ):
 		#End notes
 		for notas_item in filter(lambda x: x.valor == 120 , r_gems):
 			fill_end.append( notas_item.pos )			
-			debug( "Found {} at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ),notas_item.valor, notas_item.pos ), True ) 		
+			debug( "Found {} at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ),notas_item.valor, notas_item.pos ), True )		 
 		#Check for OD and drum rolls inside any DRUM fills
 		for midi_check in [116, 126]:
 			for index, item in enumerate(fill_start):
@@ -538,8 +551,8 @@ def handle_drums( content, part_name ):
 		total_kicks_h = len( filter(lambda x: x.valor == 84, l_gems) )
 		total_kicks_m = len( filter(lambda x: x.valor == 72, l_gems) )
 		total_kicks_e = len( filter(lambda x: x.valor == 60, l_gems) )
-		total_ods 		= len( filter(lambda x: x.valor == 116, l_gems) )
-		total_fills 	= len( fill_start )
+		total_ods		 = len( filter(lambda x: x.valor == 116, l_gems) )
+		total_fills	 = len( fill_start )
 		#
 		debug( "", True )
 		debug( "=================== TOTAL DRUMS: Some numbers and stats ===================", True )
@@ -592,7 +605,7 @@ def handle_guitar(content, part_name ):
 			
 		num_to_text = {
 			127 : "TRILL MARKER", 
-      126 : "TREMOLO MARKER",
+			126 : "TREMOLO MARKER",
 			124 : "BRE", 
 			123 : "BRE",
 			122 : "BRE",
@@ -634,7 +647,7 @@ def handle_guitar(content, part_name ):
 		#all_e_notes = re.findall("^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+)$", content, re.MULTILINE)
 		#all_x_notes = re.findall("^<(X\s[a-f,0-9]+\s[a-f,0-9]+)$", content, re.I | re.MULTILINE)
 		#all_notes = all_x_notes + all_e_notes
-		all_notes = re.findall("(?:^<(X\\s[a-f,0-9]+\\s[a-f,0-9]+)$|^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+)$)", content, re.MULTILINE)
+		all_notes = re.findall("(?:^<([X,x]\\s[a-f,0-9]+\\s[a-f,0-9]+)|^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+)$)", content, re.MULTILINE)
 		noteloc = 0;
 		
 		for note in all_notes:
@@ -703,7 +716,7 @@ def handle_guitar(content, part_name ):
 					debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ midi_note.valor ], format_location( midi_note.pos ), midi_note.valor , midi_note.pos ), True ) 
 					counter_internal += 1
 				if( counter_internal >=4 ):
-					debug( "ERROR: Found 4 notes chord at {} - ( {} )".format( format_location( item.pos ), item.pos ), True )  
+					debug( "ERROR: Found 4 notes chord at {} - ( {} )".format( format_location( item.pos ), item.pos ), True )	
 				
 					localTmpl[ output_part_var + "_chords_four_notes"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>Found four-note chord</span> </span></div>'.format( format_location( item.pos ), num_to_text[ item.valor ])
 					has_error = True
@@ -778,7 +791,7 @@ def handle_guitar(content, part_name ):
 					if( counter_internal >=2 ):
 						debug( "ERROR: Found {} chord at {} - ( {} )".format( chord_combination[ idx_notes ], format_location( item.pos ), item.pos ), True ) 
 				
-						localTmpl[ output_part_var + "_chords_m_chord_combos"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} chord not allowed</span> </span></div>'.format( format_location( item.pos ),  chord_combination[ idx_notes ] ) 
+						localTmpl[ output_part_var + "_chords_m_chord_combos"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} chord not allowed</span> </span></div>'.format( format_location( item.pos ),	chord_combination[ idx_notes ] ) 
 						has_error = True
 					
 					counter_internal = 0			
@@ -829,7 +842,7 @@ def handle_guitar(content, part_name ):
 					gems_text = gems_text + num_to_text[ v ] + " + "
 				debug( "ERROR: Found {} chord at {} - ( {} )".format( gems_text[:-3], format_location( b ), b ), True )
 				
-				localTmpl[ output_part_var + "_chords_easy"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} chord not allowed</span> </span></div>'.format( format_location( b ), gems_text[:-3] ) 	
+				localTmpl[ output_part_var + "_chords_easy"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} chord not allowed</span> </span></div>'.format( format_location( b ), gems_text[:-3] )	 
 				has_error = True
 		counter_chord_easy = filter(lambda (x,y): y >= 2, counter_global.iteritems())
 
@@ -1077,12 +1090,12 @@ def handle_vocals(content, part_name ):
 			1:	"Lyric Shift",
 			0:	"Range Shift"
 		}
-		#debug (content, True)
+		debug (content, True)
 		#
 		all_f_notes = content.split('\n')
 		all_notes = []
 		for elem in all_f_notes:		
-			if( re.match("^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+)$", elem) or re.match("^<(X\s[a-f,0-9]+\s[a-f,0-9]+)$", elem) ):
+			if( re.match("^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+)$", elem) or re.match("^<([X,x]\s[a-f,0-9]+\s[a-f,0-9])", elem) ):
 				all_notes.append( elem )
 		all_l_notes = re.findall("^\/(.*)$", content, re.I | re.MULTILINE)
 		noteloc = 0;
@@ -1115,6 +1128,8 @@ def handle_vocals(content, part_name ):
 				
 		lyric_positions = Counter()
 		for index, item in enumerate(all_l_notes):
+			if ( len(p_gems) < 3 ):
+				break
 			debug_extra("Index {}: Encoded: {} || Decoded: {} at {} ( {} )".format(index, item, base64.b64decode( '/' + item )[2:],format_location( p_gems[index].pos ), p_gems[index].pos ), True)
 			lyric_positions[ p_gems[index].pos ] = base64.b64decode( '/' + item )[2:]
 		#Get all Phrase Markers
@@ -1135,17 +1150,17 @@ def handle_vocals(content, part_name ):
 			#We need the global for harm2 so we can use for HARM3
 			if( part_name == "HARM2" ):
 				global_harm2_phase_end.append( notas_item.pos )			
-			debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ),notas_item.valor, notas_item.pos ), True ) 		
+			debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ),notas_item.valor, notas_item.pos ), True )		 
 		#If we are looping HARM3 we assume we dont have any phrase marker, we take HARM2 markers as baaseline
 		if( part_name == "HARM3" ):
 			phrase_start = global_harm2_phase_start
 			phrase_end = global_harm2_phase_end
 		#
-		reserved_words = ['[play]','[mellow]','[intense]','[idle]']
+		reserved_words = ['[play]','[mellow]','[intense]','[idle]','[idle_intense]','[idle_realtime]']
 		punctuation = ['?','!']
 		warning_characters = ['.']
 		warning_characters_error = ['period/dot']
-		special_characters = [',','�','’','"']
+		special_characters = [',','�','’','"']
 		special_characters_error = ['comma','smart apostrophe','smart apostrophe','quotes']
 		remove_words = string.maketrans("#^","  ")
 		check_caps = False
@@ -1187,12 +1202,12 @@ def handle_vocals(content, part_name ):
 								has_error = True
 						#Is the syllable upper case? This is not valid!	
 						if( full_phrase != '' and syllable[0].isupper() and "I" not in syllable and "I'm" not in syllable and "I'll" not in syllable and "I'd" not in syllable and "God" not in syllable ):
-							debug("ERROR: syllable \"{}\" should not be uppercase at {} - [{}, {}]".format(syllable.translate( remove_words ).strip(),  format_location( od_midi_note.pos ),  item,  od_midi_note.pos ), True)						
+							debug("ERROR: syllable \"{}\" should not be uppercase at {} - [{}, {}]".format(syllable.translate( remove_words ).strip(),	format_location( od_midi_note.pos ),	item,	od_midi_note.pos ), True)						
 							output_syllable = '<span class="alert-info" title="Should not be uppercase"><strong>{}</strong></span> '.format( syllable.translate( remove_words ).strip() )
 							has_error = True
 						elif( ( full_phrase == '' or check_caps == True ) and not syllable[0].isupper() ):
 							check_caps = False
-							debug("ERROR: syllable \"{}\" should be uppercase at {} - [{}, {}]".format(syllable.translate( remove_words ).strip(),  format_location( od_midi_note.pos ),  item,  od_midi_note.pos ), True)							
+							debug("ERROR: syllable \"{}\" should be uppercase at {} - [{}, {}]".format(syllable.translate( remove_words ).strip(),	format_location( od_midi_note.pos ),	item,	od_midi_note.pos ), True)							
 							output_syllable = '<span class="alert-error" title="Should be uppercase"><strong>{}</strong></span> '.format( syllable.translate( remove_words ).strip() )
 							has_error = True
 						full_phrase += syllable + ''
@@ -1262,7 +1277,7 @@ def handle_keys(content, part_name ):
 		localTmpl[ "keys_gems_not_found"] = '';
 		num_to_text = {
 			127 : "TRILL MARKER", 
-      126 : "TREMOLO MARKER",
+			126 : "TREMOLO MARKER",
 			124 : "BRE", 
 			123 : "BRE",
 			122 : "BRE",
@@ -1298,7 +1313,7 @@ def handle_keys(content, part_name ):
 			60 : "Easy Green"
 		}
 		#debug (content, True)
-		all_notes = re.findall("(?:^<(X\\s[a-f,0-9]+\\s[a-f,0-9]+)$|^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+)$)", content, re.MULTILINE)
+		all_notes = re.findall("(?:^<([X,x]\\s[a-f,0-9]+\\s[a-f,0-9]+)|^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+)$)", content, re.MULTILINE)
 		noteloc = 0;
 		
 		for note in all_notes:
@@ -1475,11 +1490,11 @@ def handle_keys(content, part_name ):
 				if not ( all_b_expert[ notas_item.pos ] ):
 					debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notas_item.pos ) ) , True )
 				
-					localTmpl[  "keys_gems_not_found" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notas_item.pos ), num_to_text[ midi_note ] )
+					localTmpl[	"keys_gems_not_found" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notas_item.pos ), num_to_text[ midi_note ] )
 			if( counter < 1 and has_b):
 				debug( "ERROR: No {} gems not found, must use all nodes used in expert".format( num_to_text[ midi_note ] ) , True )
 				
-				localTmpl[  "keys_general_issues" ] += '<div class="row-fluid"><span class="span12"><strong class="">0.0</strong> <span>{} gems not found; all gems used in Expert must be used on all difficulties</span> </span></div>'.format( num_to_text[ midi_note ] )
+				localTmpl[	"keys_general_issues" ] += '<div class="row-fluid"><span class="span12"><strong class="">0.0</strong> <span>{} gems not found; all gems used in Expert must be used on all difficulties</span> </span></div>'.format( num_to_text[ midi_note ] )
 				has_error = True
 		#Orange
 		for midi_note in midi_notes[4]:
@@ -1488,7 +1503,7 @@ def handle_keys(content, part_name ):
 				if not ( all_o_expert[ notas_item.pos ] ):
 					debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notas_item.pos ) ) , True )
 				
-					localTmpl[  "keys_gems_not_found" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notas_item.pos ), num_to_text[ midi_note ] )
+					localTmpl[	"keys_gems_not_found" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notas_item.pos ), num_to_text[ midi_note ] )
 			if( counter < 1 and has_o):
 				debug( "ERROR: No {} gems not found, must use all nodes used in expert".format( num_to_text[ midi_note ] ) , True )
 				
@@ -1549,7 +1564,7 @@ def handle_pro_keys(content, part_name ):
 		localTmpl[ "prokeys_gems_not_found"] = '';
 		num_to_text = {
 			127 : "TRILL MARKER", 
-      126 : "GLISSANDO MARKER",
+			126 : "GLISSANDO MARKER",
 			124 : "BRE", 
 			123 : "BRE",
 			122 : "BRE",
@@ -1594,7 +1609,7 @@ def handle_pro_keys(content, part_name ):
 			0:	"Range C2-C3"
 		}
 		#debug (content, True)
-		all_notes = re.findall("(?:^<(X\\s[a-f,0-9]+\\s[a-f,0-9]+)$|^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+)$)", content, re.MULTILINE)
+		all_notes = re.findall("(?:^<([X,x]\\s[a-f,0-9]+\\s[a-f,0-9]+)|^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+)$)", content, re.MULTILINE)
 		noteloc = 0;
 		c = Counter()
 		for note in all_notes:
@@ -1748,7 +1763,7 @@ def handle_events(content, part_name ):
 		location_section_start = Counter()
 		location_section_end = Counter()
 		for elem in all_text_events:		
-			if( re.match("^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+)$", elem) or re.match("^<(X\s[a-f,0-9]+\s[a-f,0-9]+)$", elem) ):
+			if( re.match("^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+)$", elem) or re.match("^<([X,x]\s[a-f,0-9]+\s[a-f,0-9]+)(.*)$", elem) ):
 				all_notes.append( elem )
 		all_l_notes = re.findall("^\/(.*)$", content, re.I | re.MULTILINE)
 		noteloc = 0;		
@@ -1821,7 +1836,8 @@ def handle_events(content, part_name ):
 			debug_extra( "Practice section {} goes from {} to {} at {} - [{},{}]".format( item, format_location( sect_start_pos[ index ] ), sect_ends[ index ], format_location( sect_ends_pos[ index ] ), sect_start_pos[ index ], sect_ends_pos[ index ] ), True )
 		
 		localTmpl['first_event'] = format_location( sect_start_pos[0] )
-		localTmpl['last_event'] = int ( sect_ends_pos.pop() / 1920 ) + 1
+		localTmpl['last_event'] = 0
+		localTmpl['last_event'] = int ( (sect_ends_pos.pop() / 1920) + 1 ) 
 		
 		return localTmpl
 
@@ -1859,7 +1875,7 @@ def debug_html( output_content, add_new_line=False ):
 	f.write( output_content )
 #Map functions to handlers
 switch_map = {"PART DRUMS" : handle_drums,
-              "PART BASS" : handle_guitar,
+							"PART BASS" : handle_guitar,
 							"PART GUITAR" : handle_guitar,
 							"PART VOCALS" : handle_vocals,
 							"HARM1" : handle_vocals,
@@ -1883,32 +1899,51 @@ media_item = 0
 	
 #bool = "";
 track_content = "";
-maxlen = 1048576;  # max num of chars to return
+maxlen = 1048576;	# max num of chars to return
+
 with open(OUTPUT_FILE, 'w') as f:
-  for media_item in xrange(0, num_media_items):
+
+	for media_item in xrange(0, num_media_items):
 		item = RPR_GetMediaItem(0, media_item);
 		#bool, item, chunk, maxlen = RPR_GetSetItemState(item, chunk, maxlen);
 		results = RPR_GetSetItemState(item, track_content, maxlen)
 		#
 		track_content = results[2]
-		media_item = media_item + 1	
+		media_item = media_item + 1
 		
 		#
-		#debug( track_content )
+		debug_extra( track_content, True )
+		debug_extra( 'END OF TRACK', True )
 		#
-		part = re.findall("^\s*NAME\s+\"(.*)\"\s*.*$", track_content, re.MULTILINE)
-		part = part[0].split(' - ')
-		if part[0].endswith(' untitled MIDI item'):
-			part[0] = part[0][:-19]
-		debug_extra( "Part name is {}".format( part[0] ), True )
-		#part = re.findall("^NAME\s+\"(.*)\"\ *.*$", track_content, re.MULTILINE)
-		#part = re.findall("^NAME\s+\"PART\s+(.*)\"$", track_content, re.MULTILINE);
-		if part:
-			#console_msg( part[0] );			
-			func = switch_map.get(part[0], None)
+		
+		part = re.findall("^\s*NAME\s+(.*)", track_content, re.MULTILINE)
+		
+		for i in part:
+			partname = i
+			if partname.startswith("\""):
+				partname = partname[1:-1] # Remove any "" around multiple words.
+			if partname.endswith(' untitled MIDI item'):
+				partname = partname[:-19] # untitled MIDI item removal
+			if partname.endswith(' glued'):
+				partname = partname[:-6] # un-glued the name.
+			if partname.endswith('REAL _KEYS_H'):
+				partname = 'PART REAL_KEYS_H' # Check for this, because we can't assume everyone noticed.
+
+			partnamesplit = partname.split(' - ') # This is here for the automatic names of added MIDI files.
+			partname = partnamesplit[0]
+		
+		debug_extra( "Part name is {}".format( partname ), True )
+		
+		if partname:
+			#console_msg( partname )
+			#console_msg( '\n' )	
+			func = switch_map.get(partname, None)
 			if func:
+				console_msg( 'Processing ' ) # Added this for visual feedback of the script running.
+				console_msg( partname )
+				console_msg( '...\n' )
 				debug("########################### Executing function to handle %s #################################" % part[0] , True)
-				fTmpl = func( track_content, part[0] )
+				fTmpl = func( track_content, partname )
 				dTmpl.update(fTmpl)
 		
 		track_content = ""
@@ -1954,7 +1989,7 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
 						<li class="nav-header">Guitar</li>
 						<li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['guitar_total_ods'] ) + '''</a></li>
 						<li class="nav-header">Keys</li>
-						<li class=""><a href="#">OD Count:  ''' + "{}".format( dTmpl['keys_total_ods'] ) + '''</a></li>
+						<li class=""><a href="#">OD Count:	''' + "{}".format( dTmpl['keys_total_ods'] ) + '''</a></li>
 						<li class="nav-header">PRO Keys</li>
 						<li class=""><a href="#">OD Count: </a></li>
 						<li class="nav-header">Vocals / Harmonies</li>
@@ -2269,7 +2304,6 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
 							<div class="span12"> 
 							<div class="lead"><h3>Event Types</h3></div>
 							'''
-							
 	if( dTmpl['events_list'] != '' ):
 		var_html += '''
 								<div>									
@@ -2321,8 +2355,9 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
 	</div><!--/.fluid-container-->	
 	<script src="js/jquery.js"></script>
 	<script src="js/bootstrap.min.js"></script>
-  </body>
+	</body>
 </html>
 '''
 	debug_html(str(var_html))
+console_msg('Done! Opening web browser.')
 webbrowser.open( OUTPUT_HTML_FILE )
