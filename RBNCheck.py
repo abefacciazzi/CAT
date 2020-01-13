@@ -1036,6 +1036,7 @@ def handle_vocals(content, part_name ):
         
         num_to_text = {
             116: "Overdrive",
+            106: "Phrase Marker (Player 2)",
             105: "Phrase Marker",
             97:    "Non-Displayed Percussion",
             96:    "Displayed Percussion",
@@ -1138,19 +1139,41 @@ def handle_vocals(content, part_name ):
         phrase_start = []
         phrase_end = []
         #Start notes
-        for notas_item in filter(lambda x: x.valor == 105 , l_gems):
-            phrase_start.append( notas_item.pos )
-            #We need the global for harm2 so we can use for HARM3
-            if( part_name == "HARM2" ):
-                global_harm2_phase_start.append( notas_item.pos )
-            debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ),notas_item.valor, notas_item.pos ), True ) 
+        for notas_item in l_gems:
+            if notas_item.valor == 105 or notas_item.valor == 106:
+                #console_msg( str(len(phrase_start)) + "," + str(len(phrase_end)) + " - " + num_to_text[ notas_item.valor ] + "," + str(notas_item.pos) + "\n" )
+                # Don't add a P2 marker, if there is a standard one there.
+                if notas_item.valor == 106:
+                    if len(phrase_start) > 1:
+                        if phrase_start[ len(phrase_start) - 1 ] == notas_item.pos:
+                            #console_msg('Skipping P2 marker, as a normal marker exists here...\n')
+                            pass
+                        else:
+                            phrase_start.append( notas_item.pos )
+                else:
+                    phrase_start.append( notas_item.pos )
+                #We need the global for harm2 so we can use for HARM3
+                if( part_name == "HARM2" ):
+                    global_harm2_phase_start.append( notas_item.pos )
+                debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ),notas_item.valor, notas_item.pos ), True ) 
         #End notes
-        for notas_item in filter(lambda x: x.valor == 105 , r_gems):
-            phrase_end.append( notas_item.pos )
-            #We need the global for harm2 so we can use for HARM3
-            if( part_name == "HARM2" ):
-                global_harm2_phase_end.append( notas_item.pos )            
-            debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ),notas_item.valor, notas_item.pos ), True )         
+        for notas_item in r_gems:
+            if notas_item.valor == 105 or notas_item.valor == 106:
+                #console_msg( str(len(phrase_start)) + "," + str(len(phrase_end)) + " - " + num_to_text[ notas_item.valor ] + "," + str(notas_item.pos) + "\n" )
+                # Don't add a P2 marker, if there is a standard one there.
+                if notas_item.valor == 106:
+                    if len(phrase_end) > 1:
+                        if phrase_end[ len(phrase_end) - 1 ] == notas_item.pos:
+                            #console_msg('Skipping P2 marker, as a normal marker exists here...\n')
+                            pass
+                        else:
+                            phrase_end.append( notas_item.pos )
+                else:
+                    phrase_end.append( notas_item.pos )
+                #We need the global for harm2 so we can use for HARM3
+                if( part_name == "HARM2" ):
+                    global_harm2_phase_end.append( notas_item.pos )            
+                debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ),notas_item.valor, notas_item.pos ), True )         
         #If we are looping HARM3 we assume we dont have any phrase marker, we take HARM2 markers as baaseline
         if( part_name == "HARM3" ):
             phrase_start = global_harm2_phase_start
