@@ -170,7 +170,7 @@ twohit_drums = { '3142' : [da_lh[31], 42], '3136' : [da_lh[36], 38], '3137' : [d
                  '3842' : [da_lh[36], 38], '3847' : [38, da_lh[47]], '36849' : [38, da_lh[49]], \
                  '3942' : [da_lh[37], 39], '3947' : [39, da_lh[47]], '3949' : [39, da_lh[49]], \
                  '4247' : [da_lh[47], 42], '4251' : [da_lh[42], 51], \
-                 '4951' : [da_lh[49], 51] }
+                 '4951' : [da_lh[49], 51], '3849' : [38, da_lh[49]] }
 double_pedal_bpm = 120 #The threshold under which we allow 1/16th kick notes on single pedal
 maxlen = 1048576 #Used for the MIDI chunk editing and other functions
 end_event = 0 #If no end_event is set or it's not set at the right position, looping through notes after the end_event will bring up an error
