@@ -136,8 +136,9 @@ global_harm2_phase_end = []
 var_sets = [
                         'bass_total_ods',
                         'guitar_total_ods',
+                        'rhythm_total_ods',
                         'keys_total_ods',
-                        'keys_total_ods',
+                        'prokeys_total_ods',
                         'vocals_od_start',
                         'harm1_od_start',
                         'harm2_od_start',
@@ -145,6 +146,7 @@ var_sets = [
                         'drums_error_icon',                        
                         'bass_error_icon',
                         'guitar_error_icon',
+                        'rhythm_error_icon',
                         'keys_error_icon',
                         'prokeys_error_icon',
                         'real_keys_x_error_icon',
@@ -187,6 +189,15 @@ var_sets = [
                         'guitar_chords_m_hopos',
                         'guitar_chords_easy',
                         'guitar_general_issues',
+                        'rhythm_green_oranges_three',
+                        'rhythm_chords_four_notes',
+                        'rhythm_chords_three_notes',
+                        'rhythm_chords_dont_exist',
+                        'rhythm_chords_h_green_orange',
+                        'rhythm_chords_m_chord_combos',
+                        'rhythm_chords_m_hopos',
+                        'rhythm_chords_easy',
+                        'rhythm_general_issues',
                         'keys_general_issues',
                         'keys_gems_not_found',
                         'keys_chords_four_notes',
@@ -209,6 +220,7 @@ var_sets = [
                         'events_list',
                         'drums_pos_od',
                         'guitar_pos_od',
+                        'rhythm_pos_od',
                         'bass_pos_od',
                         'keys_pos_od',
                         'vocals_pos_od']
@@ -218,7 +230,7 @@ for elem in var_sets:
 # (end) Template Dictionary
 
 #These variables control if we have a certain instrument or track
-has_drums, has_bass, has_guitar, has_vocals, has_harm1, has_harm2, has_harm3, has_keys = (False, False, False, False, False, False, False, False)
+has_drums, has_bass, has_guitar, has_rhythm, has_vocals, has_harm1, has_harm2, has_harm3, has_keys = (False, False, False, False, False, False, False, False, False)
 granDICT = {}
 
 # (start) Funciones de manejo de instrumentos
@@ -586,6 +598,9 @@ def handle_guitar(content, part_name ):
         if( part_name == "PART GUITAR" ):
             guitar_pos_od = []
             has_guitar = True
+        if( part_name == "PART RHYTHM" ):
+            rhythm_pos_od = []
+            has_rhythm = True
         elif( part_name == "PART BASS" ):
             bass_pos_od = []
             has_bass = True
@@ -987,6 +1002,8 @@ def handle_guitar(content, part_name ):
         for notas_item in filter(lambda x: x.valor == 116 , l_gems):            
             if( part_name == "PART GUITAR" ):                
                 guitar_pos_od.append( int ( notas_item.pos / 1920 ) + 1 )
+            elif( part_name == "PART RHYTHM" ):
+                rhythm_pos_od.append( int ( notas_item.pos / 1920 ) + 1 )
             elif( part_name == "PART BASS" ):
                 bass_pos_od.append( int ( notas_item.pos / 1920 ) + 1 )
 
@@ -1006,6 +1023,8 @@ def handle_guitar(content, part_name ):
             localTmpl[ "guitar_pos_od"] = guitar_pos_od
         elif( part_name == "PART BASS" ):
             localTmpl[ "bass_pos_od"] = bass_pos_od
+        elif( part_name == "PART RHYTHM" ):
+            localTmpl[ "rhythm_pos_od"] = rhythm_pos_od
             
         if( has_error ):
             localTmpl[ output_part_var + '_error_icon'] = '<i class="icon-exclamation-sign"></i>'
@@ -1731,9 +1750,11 @@ def handle_pro_keys(content, part_name ):
         debug( "=================== TOTAL PRO KEYS: Some numbers and stats ===================", True )
         #debug( "Total Solo Markers: {}".format( len( solo_start ) ), True )
         debug( "Total ODs: {}".format( total_ods ), True )
-        debug( "=================== ENDS TOTAL PRO KEYS: Some numbers and stats ===================", True )        
+        debug( "=================== ENDS TOTAL PRO KEYS: Some numbers and stats ===================", True )  
         
-        localTmpl[ "prokeys_total_ods" ] = total_ods
+        if part_name == "PART REAL_KEYS_X":
+            localTmpl[ "prokeys_total_ods" ] = total_ods
+
         if( has_error ):
             localTmpl[ 'prokeys_error_icon'] = '<i class="icon-exclamation-sign"></i>'
         
@@ -1903,6 +1924,7 @@ def debug_html( output_content, add_new_line=False ):
 switch_map = {"PART DRUMS" : handle_drums,
                             "PART BASS" : handle_guitar,
                             "PART GUITAR" : handle_guitar,
+                            "PART RHYTHM" : handle_guitar,
                             "PART VOCALS" : handle_vocals,
                             "HARM1" : handle_vocals,
                             "HARM2" : handle_vocals,
@@ -2014,10 +2036,12 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
                         <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['bass_total_ods'] ) + '''</a></li>
                         <li class="nav-header">Guitar</li>
                         <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['guitar_total_ods'] ) + '''</a></li>
+                        <li class="nav-header">Rhythm</li>
+                        <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['rhythm_total_ods'] ) + '''</a></li>
                         <li class="nav-header">Keys</li>
                         <li class=""><a href="#">OD Count:    ''' + "{}".format( dTmpl['keys_total_ods'] ) + '''</a></li>
-                        <li class="nav-header">PRO Keys</li>
-                        <li class=""><a href="#">OD Count: </a></li>
+                        <li class="nav-header">Pro Keys</li>
+                        <li class=""><a href="#">OD Count:    ''' + "{}".format( dTmpl['prokeys_total_ods'] ) + '''</a></li>
                         <li class="nav-header">Vocals / Harmonies</li>
                         <li class=""><a href="#">Vocals OD Count: ''' + str( len( dTmpl['vocals_od_start'] ) ) + '''</a></li>
                         <li class=""><a href="#">Harmony 1 OD Count: ''' + str( len( dTmpl['harm1_od_start'] ) ) + '''</a></li>
@@ -2030,6 +2054,7 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
                         <li class="active"><a href="#tab_drums" data-toggle="tab">Drums ''' + dTmpl['drums_error_icon'] + '''</a></li>
                         <li><a href="#tab_bass" data-toggle="tab">Bass ''' + dTmpl['bass_error_icon'] + '''</a></li>
                         <li><a href="#tab_guitar" data-toggle="tab">Guitar ''' + dTmpl['guitar_error_icon'] + '''</a></li>
+                        <li><a href="#tab_rhythm" data-toggle="tab">Rhythm ''' + dTmpl['rhythm_error_icon'] + '''</a></li>
                         <li><a href="#tab_prokeys" data-toggle="tab">Pro Keys ''' + dTmpl['prokeys_error_icon'] + '''</a></li>
                         <li><a href="#tab_keys" data-toggle="tab">Keys ''' + dTmpl['keys_error_icon'] + '''</a></li>
                         <li><a href="#tab_vocals" data-toggle="tab">PART VOCALS ''' + dTmpl['vocals_error_icon'] + '''</a></li>
@@ -2197,7 +2222,67 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
                                     <h3 class="alert alert-error">General Errors / Warnings</h3>
                                     <div>''' + "{}".format( dTmpl['guitar_general_issues'] ) + '''</div>
                                 </div>'''
-                            
+    
+    var_html += '''
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="tab_rhythm">
+                            <div class="span12">'''
+    if( dTmpl['rhythm_green_oranges_three'] != '' ):
+        var_html += '''
+                                <div>
+                                    <h3 class="alert alert-error">Gem + G + O</h3>
+                                    <div>''' + "{}".format( dTmpl['rhythm_green_oranges_three'] ) + '''</div>
+                                </div>'''
+    if( dTmpl['rhythm_chords_four_notes'] != '' ):
+        var_html += '''
+                                <div>
+                                    <h3 class="alert alert-error">Four-Note Chords</h3>
+                                    <div>''' + "{}".format( dTmpl['rhythm_chords_four_notes'] ) + '''</div>
+                                </div>'''
+    if( dTmpl['rhythm_chords_three_notes'] != '' ):
+        var_html += '''
+                                <div>
+                                    <h3 class="alert alert-error">Three-Note Chords on Hard</h3>
+                                    <div>''' + "{}".format( dTmpl['rhythm_chords_three_notes'] ) + '''</div>
+                                </div>'''
+    if( dTmpl['rhythm_chords_dont_exist'] != '' ):
+        var_html += '''
+                                <div>
+                                    <h3 class="alert alert-error">Chord Difficulty Mismatch</h3>
+                                    <div>''' + "{}".format( dTmpl['rhythm_chords_dont_exist'] ) + '''</div>
+                                </div>'''
+    if( dTmpl['rhythm_chords_h_green_orange'] != '' ):
+        var_html += '''
+                                <div>
+                                    <h3 class="alert alert-error">G+O Chords on Hard</h3>
+                                    <div>''' + "{}".format( dTmpl['rhythm_chords_h_green_orange'] ) + '''</div>
+                                </div>'''
+    if( dTmpl['rhythm_chords_m_chord_combos'] != '' ):
+        var_html += '''
+                                <div>
+                                    <h3 class="alert alert-error">G+B / G+O / R+O Chords on Medium</h3>
+                                    <div>''' + "{}".format( dTmpl['rhythm_chords_m_chord_combos'] ) + '''</div>
+                                </div>'''
+    if( dTmpl['rhythm_chords_m_hopos'] != '' ):
+        var_html += '''
+                                <div>
+                                    <h3 class="alert alert-error">Forced HOPOs on Medium</h3>
+                                    <div>''' + "{}".format( dTmpl['rhythm_chords_m_hopos'] ) + '''</div>
+                                </div>'''
+    if( dTmpl['rhythm_chords_easy'] != '' ):
+        var_html += '''
+                                <div>
+                                    <h3 class="alert alert-error">Easy Chords</h3>
+                                    <div>''' + "{}".format( dTmpl['rhythm_chords_easy'] ) + '''</div>
+                                </div>'''
+    if( dTmpl['rhythm_general_issues'] != '' ):
+        var_html += '''
+                                <div>
+                                    <h3 class="alert alert-error">General Errors / Warnings</h3>
+                                    <div>''' + "{}".format( dTmpl['rhythm_general_issues'] ) + '''</div>
+                                </div>'''
+
     var_html += '''</div>
                         
                         </div>
@@ -2354,7 +2439,7 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
                                 <div class="lead"><h3>Overdrive Visualizer</h3></div>
                                 <table class="table table-condensed" id="" width="''' + "{}".format( ( int( dTmpl['last_event'] ) * 10 ) ) + '''px">
                             '''
-    for instrument in ['guitar','bass','drums','keys']:
+    for instrument in ['guitar','rhythm','bass','drums','keys']:
         full_ods = dTmpl[ instrument + '_pos_od']
         if( len(full_ods)<1 ):
             full_ods = []
