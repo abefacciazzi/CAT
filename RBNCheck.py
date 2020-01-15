@@ -119,14 +119,14 @@ CONST_DEBUG_EXTRA = parser.getboolean( 'DEBUG', 'low_level' )
 CONST_DEBUG = parser.getboolean( 'DEBUG', 'high_level' )
 # (end) Config section
 
-# (start) Class Notas
+# (start) Class Notes
 
-class Nota(object):
-    def __init__(self, valor, pos):
+class Note(object):
+    def __init__(self, value, pos):
         self.pos = pos
-        self.valor = valor
+        self.value = value
 
-# (end) Class Notas
+# (end) Class Notes
 
 # (start) Template Dictionary
 dTmpl = {}
@@ -335,11 +335,11 @@ def handle_drums( content, part_name ):
             #Just parse or debug those notes that are really in the chart
             #we can exclude notes off, text events, etc.
             if( midi_parts[0].lower() == 'e' and re.search("^9", midi_parts[2] ) ):
-                l_gems.append( Nota(decval, noteloc) )
+                l_gems.append( Note(decval, noteloc) )
                 debug("Starts with 9: Midi # {}, MBT {}, Type {} ".format( str( decval ), str( noteloc ),str( midi_parts[2] ) ) )
                 debug( "{} at {}".format( num_to_text[decval], format_location( noteloc ) ), True )
             elif( midi_parts[0].lower() == 'e' and re.search("^8", midi_parts[2] ) ):            
-                r_gems.append( Nota(decval, noteloc) )
+                r_gems.append( Note(decval, noteloc) )
                 debug("Starts with 8: Midi # {}, MBT {}, Type {} ".format( str( decval ), str( noteloc ),str( midi_parts[2] ) ) )
                 debug( "{} at {}".format( num_to_text[decval], format_location( noteloc ) ), True )
             else:
@@ -350,12 +350,12 @@ def handle_drums( content, part_name ):
         #Also we check for non existent gems on expert
         debug( "", True )
         debug( "=================== EASY DRUMS: Error Kick + Gem ===================", True )
-        for notas_item in filter(lambda x: x.valor == 60, l_gems):
+        for notes_item in filter(lambda x: x.value == 60, l_gems):
             #We got all kicks positions, now we want to seearch if there is any other gem in the same position as the kick
-            for notas_item_2 in filter(lambda x: x.pos == notas_item.pos and ( x.valor >=61 and    x.valor <=65) , l_gems):
-                if( notas_item_2.valor > 0 ):
-                    debug( "Found Kick + Gem [ {} ] at {} - ( {},{} )".format( num_to_text[ notas_item_2.valor ], format_location( notas_item.pos ), notas_item_2.valor, notas_item.pos ), True )
-                    localTmpl['drums_kick_gem'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> Kick + {}</span></div>'.format( format_location( notas_item.pos ), num_to_text[ notas_item_2.valor ] )
+            for notes_item_2 in filter(lambda x: x.pos == notes_item.pos and ( x.value >=61 and    x.value <=65) , l_gems):
+                if( notes_item_2.value > 0 ):
+                    debug( "Found Kick + Gem [ {} ] at {} - ( {},{} )".format( num_to_text[ notes_item_2.value ], format_location( notes_item.pos ), notes_item_2.value, notes_item.pos ), True )
+                    localTmpl['drums_kick_gem'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> Kick + {}</span></div>'.format( format_location( notes_item.pos ), num_to_text[ notes_item_2.value ] )
                     has_error = True
         
         debug( "=================== ENDS EASY DRUMS: Error Kick + Gem ===================", True )
@@ -365,20 +365,20 @@ def handle_drums( content, part_name ):
         debug( "=================== MEDIUM DRUMS: Error Kick + 2 Gems ===================", True )
         counter_global = Counter()        
         extra_gems_m = Counter()        
-        for notas_item in filter(lambda x: x.valor == 72, l_gems):
+        for notes_item in filter(lambda x: x.value == 72, l_gems):
             #We got all kicks positions, now we want to seearch if there is any other gem in the same position as the kick
-            for notas_item_2 in filter(lambda x: x.pos == notas_item.pos and ( x.valor >=73 and    x.valor <=76) , l_gems):
-                counter_global[(notas_item.pos)] += 1
-                extra_gems_m[ ( notas_item_2.valor, notas_item.pos ) ] += 1
+            for notes_item_2 in filter(lambda x: x.pos == notes_item.pos and ( x.value >=73 and    x.value <=76) , l_gems):
+                counter_global[(notes_item.pos)] += 1
+                extra_gems_m[ ( notes_item_2.value, notes_item.pos ) ] += 1
                 
             #Do we have more than one gem on top of kicks in this particular position?
-            if( counter_global[notas_item.pos] > 1 ):
-                gems = filter(lambda (x,y): y == notas_item.pos, extra_gems_m.keys() )
+            if( counter_global[notes_item.pos] > 1 ):
+                gems = filter(lambda (x,y): y == notes_item.pos, extra_gems_m.keys() )
                 if( len(gems)>1 ):
                     debug( "{}".format(gems), True ) 
-                    debug( "Found Kick + 2 Gems [ {} + {} ] at {} - ( {} )".format( num_to_text[ gems[0][0] ], num_to_text[ gems[1][0] ], format_location( notas_item.pos ), notas_item.pos ), True ) 
+                    debug( "Found Kick + 2 Gems [ {} + {} ] at {} - ( {} )".format( num_to_text[ gems[0][0] ], num_to_text[ gems[1][0] ], format_location( notes_item.pos ), notes_item.pos ), True ) 
                 
-                    localTmpl['drums_kick_gem_m'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> Kick + 2 Gems [ {} + {} ]</span></div>'.format( format_location( notas_item.pos ), num_to_text[ gems[0][0] ]    , num_to_text[ gems[1][0] ] )
+                    localTmpl['drums_kick_gem_m'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> Kick + 2 Gems [ {} + {} ]</span></div>'.format( format_location( notes_item.pos ), num_to_text[ gems[0][0] ]    , num_to_text[ gems[1][0] ] )
                     has_error = True
         #debug(str(tempo), True)
         debug( "=================== ENDS MEDIUM DRUMS: Error Kick + 2 Gems ===================", True )
@@ -391,53 +391,53 @@ def handle_drums( content, part_name ):
         all_y_expert = Counter()
         all_b_expert = Counter()
         all_g_expert = Counter()
-        for notas_item in filter(lambda x: x.valor == 96, l_gems):
-            all_o_expert[ notas_item.pos ] = 1
-        for notas_item in filter(lambda x: x.valor == 97, l_gems):
-            all_r_expert[ notas_item.pos ] = 1
-        for notas_item in filter(lambda x: x.valor == 98, l_gems):
-            all_y_expert[ notas_item.pos ] = 1
-        for notas_item in filter(lambda x: x.valor == 99, l_gems):
-            all_b_expert[ notas_item.pos ] = 1
-        for notas_item in filter(lambda x: x.valor == 100, l_gems):
-            all_g_expert[ notas_item.pos ] = 1        
+        for notes_item in filter(lambda x: x.value == 96, l_gems):
+            all_o_expert[ notes_item.pos ] = 1
+        for notes_item in filter(lambda x: x.value == 97, l_gems):
+            all_r_expert[ notes_item.pos ] = 1
+        for notes_item in filter(lambda x: x.value == 98, l_gems):
+            all_y_expert[ notes_item.pos ] = 1
+        for notes_item in filter(lambda x: x.value == 99, l_gems):
+            all_b_expert[ notes_item.pos ] = 1
+        for notes_item in filter(lambda x: x.value == 100, l_gems):
+            all_g_expert[ notes_item.pos ] = 1        
         midi_notes = [ [60, 72, 84], [61, 73, 85], [62, 74, 86], [63, 75, 87], [64, 76, 88]]
         #Kicks
         for midi_note in midi_notes[0]:
-            for notas_item in filter(lambda x: x.valor == midi_note, l_gems):
-                if not ( all_o_expert[ notas_item.pos ] ):
-                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notas_item.pos ) ) , True )
+            for notes_item in filter(lambda x: x.value == midi_note, l_gems):
+                if not ( all_o_expert[ notes_item.pos ] ):
+                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notes_item.pos ) ) , True )
         #Snares
         for midi_note in midi_notes[1]:
-            for notas_item in filter(lambda x: x.valor == midi_note, l_gems):
-                if not ( all_r_expert[ notas_item.pos ] ):
-                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notas_item.pos ) ) , True )
+            for notes_item in filter(lambda x: x.value == midi_note, l_gems):
+                if not ( all_r_expert[ notes_item.pos ] ):
+                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notes_item.pos ) ) , True )
                         
-                    localTmpl['drums_not_found_lower'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} not found on Expert</span></div>'.format( format_location( notas_item.pos ),num_to_text[ midi_note ] )
+                    localTmpl['drums_not_found_lower'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} not found on Expert</span></div>'.format( format_location( notes_item.pos ),num_to_text[ midi_note ] )
                     has_error = True
         #Yellow (Tom / Hat)
         for midi_note in midi_notes[2]:
-            for notas_item in filter(lambda x: x.valor == midi_note, l_gems):
-                if not ( all_y_expert[ notas_item.pos ] ):
-                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notas_item.pos ) ) , True )
+            for notes_item in filter(lambda x: x.value == midi_note, l_gems):
+                if not ( all_y_expert[ notes_item.pos ] ):
+                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notes_item.pos ) ) , True )
                     
-                    localTmpl['drums_not_found_lower'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} not found on Expert</span></div>'.format( format_location( notas_item.pos ),num_to_text[ midi_note ] )
+                    localTmpl['drums_not_found_lower'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} not found on Expert</span></div>'.format( format_location( notes_item.pos ),num_to_text[ midi_note ] )
                     has_error = True
         #Blue (Tom / Cymbal)
         for midi_note in midi_notes[3]:
-            for notas_item in filter(lambda x: x.valor == midi_note, l_gems):
-                if not ( all_b_expert[ notas_item.pos ] ):
-                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notas_item.pos ) ) , True )
+            for notes_item in filter(lambda x: x.value == midi_note, l_gems):
+                if not ( all_b_expert[ notes_item.pos ] ):
+                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notes_item.pos ) ) , True )
                     
-                    localTmpl['drums_not_found_lower'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} not found on Expert</span></div>'.format( format_location( notas_item.pos ),num_to_text[ midi_note ] )
+                    localTmpl['drums_not_found_lower'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} not found on Expert</span></div>'.format( format_location( notes_item.pos ),num_to_text[ midi_note ] )
                     has_error = True
         #Green (Tom / Cymbal)
         for midi_note in midi_notes[4]:
-            for notas_item in filter(lambda x: x.valor == midi_note, l_gems):
-                if not ( all_g_expert[ notas_item.pos ] ):
-                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notas_item.pos ) ) , True )
+            for notes_item in filter(lambda x: x.value == midi_note, l_gems):
+                if not ( all_g_expert[ notes_item.pos ] ):
+                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notes_item.pos ) ) , True )
                     
-                    localTmpl['drums_not_found_lower'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} not found on Expert</span></div>'.format( format_location( notas_item.pos ),num_to_text[ midi_note ] )
+                    localTmpl['drums_not_found_lower'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} not found on Expert</span></div>'.format( format_location( notes_item.pos ),num_to_text[ midi_note ] )
                     has_error = True
         debug( "=================== ENDS MISSING GEMS LOWER DIFFICULTIES===================", True )
         '''
@@ -449,11 +449,11 @@ def handle_drums( content, part_name ):
             debug( "", True )
             debug( "=================== ANIMATION BUT NO PRO MARKER ===================", True )
             all_tom_anim = Counter()
-            for notas_item in filter(lambda x: x.valor == 46 or x.valor == 47 or x.valor == 48 or x.valor == 49 or x.valor == 50 or x.valor == 51 , l_gems):
-                all_tom_anim[ notas_item.pos ] = 1
+            for notes_item in filter(lambda x: x.value == 46 or x.value == 47 or x.value == 48 or x.value == 49 or x.value == 50 or x.value == 51 , l_gems):
+                all_tom_anim[ notes_item.pos ] = 1
                 
             for midi_note_pos in all_tom_anim:
-                if not( filter(lambda x: ( x.valor in [ 110, 111, 112 ] ) and x.pos == midi_note_pos, l_gems) ):            
+                if not( filter(lambda x: ( x.value in [ 110, 111, 112 ] ) and x.pos == midi_note_pos, l_gems) ):            
                     debug( "Tom Marker not found for Drum Animation at {}".format( format_location( midi_note_pos ) ) , True )
                         
                     localTmpl['drums_tom_marker'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> tom marker not found in drum animations</span></div>'.format( format_location( midi_note_pos ) )
@@ -471,44 +471,44 @@ def handle_drums( content, part_name ):
         overlap_fill_overdrive_end = []
         overlap_fill_drum_roll = []
         #Start notes
-        for notas_item in filter(lambda x: x.valor == 120 , l_gems):
-            fill_start.append( notas_item.pos )
-            debug( "Found {} at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ),notas_item.valor, notas_item.pos ), True ) 
+        for notes_item in filter(lambda x: x.value == 120 , l_gems):
+            fill_start.append( notes_item.pos )
+            debug( "Found {} at {} - ( {}, {} )".format( num_to_text[ notes_item.value ], format_location( notes_item.pos ),notes_item.value, notes_item.pos ), True ) 
         #End notes
-        for notas_item in filter(lambda x: x.valor == 120 , r_gems):
-            fill_end.append( notas_item.pos )            
-            debug( "Found {} at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ),notas_item.valor, notas_item.pos ), True )         
+        for notes_item in filter(lambda x: x.value == 120 , r_gems):
+            fill_end.append( notes_item.pos )            
+            debug( "Found {} at {} - ( {}, {} )".format( num_to_text[ notes_item.value ], format_location( notes_item.pos ),notes_item.value, notes_item.pos ), True )         
         #Check for OD and drum rolls inside any DRUM fills
         for midi_check in [116, 126]:
             for index, item in enumerate(fill_start):
-                for od_midi_note in filter(lambda x: x.valor == midi_check and ( x.pos >= item and x.pos <= fill_end[index] ), ( r_gems + l_gems )):
+                for od_midi_note in filter(lambda x: x.value == midi_check and ( x.pos >= item and x.pos <= fill_end[index] ), ( r_gems + l_gems )):
                     if( midi_check == 116 ):
                         #If the od ends right before the drum fill give a warning
                         if( od_midi_note.pos == item ):
-                            overlap_fill_overdrive_start.append( notas_item.pos )
-                            debug( "WARNING: Found {} ending right before Fill #{} at {} - [ {},{} ] )".format( num_to_text[ od_midi_note.valor ], index+1, format_location( od_midi_note.pos ), od_midi_note.valor, od_midi_note.pos ), True )
+                            overlap_fill_overdrive_start.append( notes_item.pos )
+                            debug( "WARNING: Found {} ending right before Fill #{} at {} - [ {},{} ] )".format( num_to_text[ od_midi_note.value ], index+1, format_location( od_midi_note.pos ), od_midi_note.value, od_midi_note.pos ), True )
                     
-                            localTmpl['drums_fills_errors'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} ending right before drum fill #{}</span></div>'.format( format_location( od_midi_note.pos ), num_to_text[ od_midi_note.valor ], index+1 )
+                            localTmpl['drums_fills_errors'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} ending right before drum fill #{}</span></div>'.format( format_location( od_midi_note.pos ), num_to_text[ od_midi_note.value ], index+1 )
                             has_error = True
                         #If the od starts right after the drum fill give a warning
                         elif( od_midi_note.pos == fill_end[index] ):
-                            overlap_fill_overdrive_end.append( notas_item.pos )
-                            debug( "Found {} starting right after in Fill #{} at {} - [ {},{} ] )".format( num_to_text[ od_midi_note.valor ], index+1, format_location( od_midi_note.pos ), od_midi_note.valor, od_midi_note.pos ), True )
+                            overlap_fill_overdrive_end.append( notes_item.pos )
+                            debug( "Found {} starting right after in Fill #{} at {} - [ {},{} ] )".format( num_to_text[ od_midi_note.value ], index+1, format_location( od_midi_note.pos ), od_midi_note.value, od_midi_note.pos ), True )
                     
-                            localTmpl['drums_fills_errors'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} starting right after drum fill #{}</span></div>'.format( format_location( od_midi_note.pos ), num_to_text[ od_midi_note.valor ], index+1 )
+                            localTmpl['drums_fills_errors'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} starting right after drum fill #{}</span></div>'.format( format_location( od_midi_note.pos ), num_to_text[ od_midi_note.value ], index+1 )
                             has_error = True
                         #Is a regular overlpa so error message
                         else:
-                            overlap_fill_overdrive.append( notas_item.pos )
-                            debug( "Found {} overlap in Fill #{} at {} - [ {},{} ] )".format( num_to_text[ od_midi_note.valor ], index+1, format_location( od_midi_note.pos ), od_midi_note.valor, od_midi_note.pos ), True )
+                            overlap_fill_overdrive.append( notes_item.pos )
+                            debug( "Found {} overlap in Fill #{} at {} - [ {},{} ] )".format( num_to_text[ od_midi_note.value ], index+1, format_location( od_midi_note.pos ), od_midi_note.value, od_midi_note.pos ), True )
                     
-                            localTmpl['drums_fills_errors'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} overlaps drum fill #{}</span></div>'.format( format_location( od_midi_note.pos), num_to_text[ od_midi_note.valor ], index+1 )
+                            localTmpl['drums_fills_errors'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} overlaps drum fill #{}</span></div>'.format( format_location( od_midi_note.pos), num_to_text[ od_midi_note.value ], index+1 )
                             has_error = True
                     if( midi_check == 126 ):
-                        overlap_fill_drum_roll.append( notas_item.pos )
-                        debug( "Found {} overlap in Fill #{} at {} - [ {},{} ] )".format( num_to_text[ od_midi_note.valor ], index+1, format_location( od_midi_note.pos ), od_midi_note.valor, od_midi_note.pos ), True )
+                        overlap_fill_drum_roll.append( notes_item.pos )
+                        debug( "Found {} overlap in Fill #{} at {} - [ {},{} ] )".format( num_to_text[ od_midi_note.value ], index+1, format_location( od_midi_note.pos ), od_midi_note.value, od_midi_note.pos ), True )
                     
-                        localTmpl['drums_fills_errors'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} overlaps drum fill #{}</span></div>'.format( format_location( od_midi_note.pos) , num_to_text[ od_midi_note.valor ], index+1 )
+                        localTmpl['drums_fills_errors'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} overlaps drum fill #{}</span></div>'.format( format_location( od_midi_note.pos) , num_to_text[ od_midi_note.value ], index+1 )
                         has_error = True
 
                 #We only need this to be printed once.. 
@@ -524,26 +524,26 @@ def handle_drums( content, part_name ):
         debug( "", True )
         debug( "=================== GENERAL DRUMS: No gems under solo marker ===================", True )
         #Start notes
-        for notas_item in filter(lambda x: x.valor == 103 , l_gems):
-            solo_start.append( notas_item.pos )
-            debug_extra( "Found start {} at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ),notas_item.valor, notas_item.pos ), True ) 
+        for notes_item in filter(lambda x: x.value == 103 , l_gems):
+            solo_start.append( notes_item.pos )
+            debug_extra( "Found start {} at {} - ( {}, {} )".format( num_to_text[ notes_item.value ], format_location( notes_item.pos ),notes_item.value, notes_item.pos ), True ) 
         #End notes
-        for notas_item in filter(lambda x: x.valor == 103 , r_gems):
-            solo_end.append( notas_item.pos )            
-            debug_extra( "Found end {} at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ),notas_item.valor, notas_item.pos ), True )        
+        for notes_item in filter(lambda x: x.value == 103 , r_gems):
+            solo_end.append( notes_item.pos )            
+            debug_extra( "Found end {} at {} - ( {}, {} )".format( num_to_text[ notes_item.value ], format_location( notes_item.pos ),notes_item.value, notes_item.pos ), True )        
         #Check for any gem under solo marker... we need at least one gem for the solo to be valid
         for index, item in enumerate(solo_start):
             gems_text = '';
-            if ( filter(lambda x: x.valor >=60 and x.valor <=64 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
+            if ( filter(lambda x: x.value >=60 and x.value <=64 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
                 counter[ item ] += 1
                 gems_text += 'Easy + '
-            if ( filter(lambda x: x.valor >=72 and x.valor <=76 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
+            if ( filter(lambda x: x.value >=72 and x.value <=76 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
                 counter[ item ] += 1
                 gems_text += 'Medium + '
-            if ( filter(lambda x: x.valor >=84 and x.valor <=88 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
+            if ( filter(lambda x: x.value >=84 and x.value <=88 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
                 counter[ item ] += 1
                 gems_text += 'Hard + '
-            if ( filter(lambda x: x.valor >=96 and x.valor <=100 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
+            if ( filter(lambda x: x.value >=96 and x.value <=100 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
                 counter[ item ] += 1
                 gems_text += 'Expert + '
             
@@ -556,14 +556,14 @@ def handle_drums( content, part_name ):
         debug( "=================== ENDS GENERAL DRUMS: No gems under solo marker ===================", True )
         #Get all positions for ods
         drums_pos_od = []
-        for notas_item in filter(lambda x: x.valor == 116 , l_gems):
-            drums_pos_od.append( int ( notas_item.pos / 1920 ) + 1 )
+        for notes_item in filter(lambda x: x.value == 116 , l_gems):
+            drums_pos_od.append( int ( notes_item.pos / 1920 ) + 1 )
         #
-        total_kicks_x = len( filter(lambda x: x.valor == 96, l_gems) )
-        total_kicks_h = len( filter(lambda x: x.valor == 84, l_gems) )
-        total_kicks_m = len( filter(lambda x: x.valor == 72, l_gems) )
-        total_kicks_e = len( filter(lambda x: x.valor == 60, l_gems) )
-        total_ods         = len( filter(lambda x: x.valor == 116, l_gems) )
+        total_kicks_x = len( filter(lambda x: x.value == 96, l_gems) )
+        total_kicks_h = len( filter(lambda x: x.value == 84, l_gems) )
+        total_kicks_m = len( filter(lambda x: x.value == 72, l_gems) )
+        total_kicks_e = len( filter(lambda x: x.value == 60, l_gems) )
+        total_ods         = len( filter(lambda x: x.value == 116, l_gems) )
         total_fills     = len( fill_start )
         #
         debug( "", True )
@@ -686,11 +686,11 @@ def handle_guitar(content, part_name ):
             #Just parse or debug those notes that are really in the chart
             #we can exclude notes off, text events, etc.
             if( midi_parts[0].lower() == 'e' and re.search("^9", midi_parts[2] ) ):
-                l_gems.append( Nota(decval, noteloc) )
+                l_gems.append( Note(decval, noteloc) )
                 debug("Starts with 9: Midi # {}, MBT {}, Type {} ".format( str( decval ), str( noteloc ),str( midi_parts[2] ) ) )
                 debug( "{} at {}".format( num_to_text[decval], format_location( noteloc ) ), True )
             elif( midi_parts[0].lower() == 'e' and re.search("^8", midi_parts[2] ) ):            
-                r_gems.append( Nota(decval, noteloc) )
+                r_gems.append( Note(decval, noteloc) )
                 debug("Starts with 8: Midi # {}, MBT {}, Type {} ".format( str( decval ), str( noteloc ),str( midi_parts[2] ) ) )
                 debug( "{} at {}".format( num_to_text[decval], format_location( noteloc ) ), True )
             else:
@@ -703,16 +703,16 @@ def handle_guitar(content, part_name ):
         counter_positions = Counter() #All positions with 3 gems chord having G+O        
         counter_global = Counter()                
         extra_gems_chords = Counter()
-        for notas_item in filter(lambda x: ( x.valor == 97 or x.valor == 98 or x.valor == 99 ) , l_gems):
+        for notes_item in filter(lambda x: ( x.value == 97 or x.value == 98 or x.value == 99 ) , l_gems):
             #We got all red, yellow and blue notes positions, now we want to seearch if there is any other gem in the same position being ggreen AND orange
             #How many G+O we have?
-            if( len( filter(lambda x: x.pos == notas_item.pos and ( x.valor == 96 or x.valor == 100) , l_gems) ) == 2 ):
-                extra_gems_chords[ ( notas_item.pos, notas_item.valor ) ] += 1
-                if( counter_positions[ notas_item.pos ] < 1 ):
-                    counter_positions[notas_item.pos] += 1
-                debug( "ERROR: Found {} paired with Green and Orange gems at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ), notas_item.valor , notas_item.pos ), True ) 
+            if( len( filter(lambda x: x.pos == notes_item.pos and ( x.value == 96 or x.value == 100) , l_gems) ) == 2 ):
+                extra_gems_chords[ ( notes_item.pos, notes_item.value ) ] += 1
+                if( counter_positions[ notes_item.pos ] < 1 ):
+                    counter_positions[notes_item.pos] += 1
+                debug( "ERROR: Found {} paired with Green and Orange gems at {} - ( {}, {} )".format( num_to_text[ notes_item.value ], format_location( notes_item.pos ), notes_item.value , notes_item.pos ), True ) 
                 
-                localTmpl[ output_part_var + "_green_oranges_three"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} paired with Green and Orange gems</span> </span></div>'.format( format_location( notas_item.pos ), num_to_text[ notas_item.valor ])
+                localTmpl[ output_part_var + "_green_oranges_three"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} paired with Green and Orange gems</span> </span></div>'.format( format_location( notes_item.pos ), num_to_text[ notes_item.value ])
                 has_error = True
         
         #debug(str(extra_gems_chords), True)
@@ -727,13 +727,13 @@ def handle_guitar(content, part_name ):
         debug( "=================== EXPERT " + part_name + ": 4 notes Chords ===================", True )        
         for index, item in enumerate(l_gems):
             if( counter[ item.pos ] < 1 ):
-                for midi_note in filter(lambda x: x.pos == item.pos and ( x.valor >= 96 and x.valor <= 100 ), l_gems ):
-                    debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ midi_note.valor ], format_location( midi_note.pos ), midi_note.valor , midi_note.pos ), True ) 
+                for midi_note in filter(lambda x: x.pos == item.pos and ( x.value >= 96 and x.value <= 100 ), l_gems ):
+                    debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ midi_note.value ], format_location( midi_note.pos ), midi_note.value , midi_note.pos ), True ) 
                     counter_internal += 1
                 if( counter_internal >=4 ):
                     debug( "ERROR: Found 4 notes chord at {} - ( {} )".format( format_location( item.pos ), item.pos ), True )    
                 
-                    localTmpl[ output_part_var + "_chords_four_notes"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>Found four-note chord</span> </span></div>'.format( format_location( item.pos ), num_to_text[ item.valor ])
+                    localTmpl[ output_part_var + "_chords_four_notes"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>Found four-note chord</span> </span></div>'.format( format_location( item.pos ), num_to_text[ item.value ])
                     has_error = True
                 elif(counter_internal >=2):
                     counter_chord_expert[ item.pos ] = 1
@@ -748,22 +748,22 @@ def handle_guitar(content, part_name ):
         counter_internal = 0    
         debug( "", True )
         debug( "=================== HARD " + part_name + ": 3 notes Chords ===================", True )            
-        for index, item in enumerate(filter(lambda x: x.valor >= 84 and x.valor <= 88 , l_gems )):
+        for index, item in enumerate(filter(lambda x: x.value >= 84 and x.value <= 88 , l_gems )):
             if( counter[ item.pos ] < 1 ):
-                for midi_note in filter(lambda x: x.pos == item.pos and ( x.valor >= 84 and x.valor <= 88 ), l_gems ):
-                    debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ midi_note.valor ], format_location( midi_note.pos ), midi_note.valor , midi_note.pos ), True ) 
+                for midi_note in filter(lambda x: x.pos == item.pos and ( x.value >= 84 and x.value <= 88 ), l_gems ):
+                    debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ midi_note.value ], format_location( midi_note.pos ), midi_note.value , midi_note.pos ), True ) 
                     counter_internal += 1
                 if( counter_internal >=3 ):
                     debug( "ERROR: Found 3 notes chord at {} - ( {} )".format( format_location( item.pos ), item.pos ), True ) 
                 
-                    localTmpl[ output_part_var + "_chords_three_notes"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>Found three-note chord</span> </span></div>'.format( format_location( item.pos ), num_to_text[ item.valor ])
+                    localTmpl[ output_part_var + "_chords_three_notes"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>Found three-note chord</span> </span></div>'.format( format_location( item.pos ), num_to_text[ item.value ])
                     has_error = True
                 elif(counter_internal <=1):
-                    debug_extra("Single {} note found at {} - ( {},{} )".format(num_to_text[ item.valor ], format_location( item.pos ), item.valor , item.pos), True)
+                    debug_extra("Single {} note found at {} - ( {},{} )".format(num_to_text[ item.value ], format_location( item.pos ), item.value , item.pos), True)
                     if( counter_chord_expert[ item.pos ] > 0 ):
                         debug("ERROR: Expert chord not found here at {} - ( {} )".format( format_location( item.pos ), item.pos), True)
                 
-                        localTmpl[ output_part_var + "_chords_dont_exist"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>Expert chord not found on Hard</span> </span></div>'.format( format_location( item.pos ), num_to_text[ item.valor ])
+                        localTmpl[ output_part_var + "_chords_dont_exist"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>Expert chord not found on Hard</span> </span></div>'.format( format_location( item.pos ), num_to_text[ item.value ])
                         has_error = True
                     
                 counter_internal = 0            
@@ -777,8 +777,8 @@ def handle_guitar(content, part_name ):
         debug( "=================== HARD " + part_name + ": Green + Orange chords ===================", True )            
         for index, item in enumerate(l_gems):
             if( counter[ item.pos ] < 1 ):
-                for midi_note in filter(lambda x: x.pos == item.pos and ( x.valor == 84 or x.valor == 88 ), l_gems ):
-                    debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ midi_note.valor ], format_location( midi_note.pos ), midi_note.valor , midi_note.pos ), True ) 
+                for midi_note in filter(lambda x: x.pos == item.pos and ( x.value == 84 or x.value == 88 ), l_gems ):
+                    debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ midi_note.value ], format_location( midi_note.pos ), midi_note.value , midi_note.pos ), True ) 
                     counter_internal += 1
                 if( counter_internal >=2 ):
                     debug( "ERROR: Found Green and Orange chord at {} - ( {} )".format( format_location( item.pos ), item.pos ), True )
@@ -800,8 +800,8 @@ def handle_guitar(content, part_name ):
             counter_internal = 0            
             for index, item in enumerate(l_gems):
                 if( counter[ item.pos ] < 1 ):
-                    for midi_note in filter(lambda x: x.pos == item.pos and ( x.valor == item_note[0] or x.valor == item_note[1] ), l_gems ):
-                        debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ midi_note.valor ], format_location( midi_note.pos ), midi_note.valor , midi_note.pos ), True ) 
+                    for midi_note in filter(lambda x: x.pos == item.pos and ( x.value == item_note[0] or x.value == item_note[1] ), l_gems ):
+                        debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ midi_note.value ], format_location( midi_note.pos ), midi_note.value , midi_note.pos ), True ) 
                         counter_internal += 1
                     if( counter_internal >=2 ):
                         debug( "ERROR: Found {} chord at {} - ( {} )".format( chord_combination[ idx_notes ], format_location( item.pos ), item.pos ), True ) 
@@ -819,8 +819,8 @@ def handle_guitar(content, part_name ):
         debug( "", True )
         debug( "=================== MEDIUM " + part_name + ": No Force hopos ===================", True )            
         #for index, item in enumerate(l_gems):
-        for midi_note in filter(lambda x: x.valor == 77 or x.valor == 78 , l_gems ):
-            debug( "ERROR: Found {} at {} - ( {} )".format( num_to_text[ midi_note.valor ], format_location( midi_note.pos ), midi_note.pos ), True ) 
+        for midi_note in filter(lambda x: x.value == 77 or x.value == 78 , l_gems ):
+            debug( "ERROR: Found {} at {} - ( {} )".format( num_to_text[ midi_note.value ], format_location( midi_note.pos ), midi_note.pos ), True ) 
                 
             localTmpl[ output_part_var + "_chords_m_hopos"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>Forced HOPOs not allowed</span> </span></div>'.format( format_location( item.pos ) )
             has_error = True
@@ -832,7 +832,7 @@ def handle_guitar(content, part_name ):
         debug( "", True )
         debug( "=================== MEDIUM " + part_name + ": No expert chords ===================", True )            
         for item in counter_chord_expert:
-            if( len(filter(lambda x: x.pos == item and ( x.valor >= 72 and x.valor <= 76 ), l_gems )) == 1 ):
+            if( len(filter(lambda x: x.pos == item and ( x.value >= 72 and x.value <= 76 ), l_gems )) == 1 ):
                 debug("Expert chord not found here at {} - ( {} )".format( format_location( item ), item), True)
                 
                 localTmpl[ output_part_var + "_chords_dont_exist"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>Expert chord not found on Medium</span> </span></div>'.format( format_location( item ) )
@@ -844,10 +844,10 @@ def handle_guitar(content, part_name ):
         gems_in_chord = Counter()
         debug( "", True )
         debug( "=================== EASY " + part_name + ": No Chords ===================", True )
-        for notas_item in filter(lambda x: x.valor >= 60 and x.valor <= 64, l_gems):
-            debug_extra( "Found {} at {} - ( {}, {}): ".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ), notas_item.valor , notas_item.pos ), True ) 
-            counter_global[(notas_item.pos)] += 1
-            gems_in_chord[ ( notas_item.pos, notas_item.valor ) ] += 1
+        for notes_item in filter(lambda x: x.value >= 60 and x.value <= 64, l_gems):
+            debug_extra( "Found {} at {} - ( {}, {}): ".format( num_to_text[ notes_item.value ], format_location( notes_item.pos ), notes_item.value , notes_item.pos ), True ) 
+            counter_global[(notes_item.pos)] += 1
+            gems_in_chord[ ( notes_item.pos, notes_item.value ) ] += 1
         debug_extra("Validating chords....", True)
         #Do we have more than one gem on top of kicks in this particular position?
         for (a, b) in enumerate(counter_global):            
@@ -871,27 +871,27 @@ def handle_guitar(content, part_name ):
         debug( "", True )
         debug( "=================== GENERAL " + part_name + ": No gems under solo marker ===================", True )
         #Start notes
-        for notas_item in filter(lambda x: x.valor == 103 , l_gems):
-            solo_start.append( notas_item.pos )
-            debug_extra( "Found start {} at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ),notas_item.valor, notas_item.pos ), True ) 
+        for notes_item in filter(lambda x: x.value == 103 , l_gems):
+            solo_start.append( notes_item.pos )
+            debug_extra( "Found start {} at {} - ( {}, {} )".format( num_to_text[ notes_item.value ], format_location( notes_item.pos ),notes_item.value, notes_item.pos ), True ) 
         #End notes
-        for notas_item in filter(lambda x: x.valor == 103 , r_gems):
-            solo_end.append( notas_item.pos )            
-            debug_extra( "Found end {} at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ),notas_item.valor, notas_item.pos ), True )        
+        for notes_item in filter(lambda x: x.value == 103 , r_gems):
+            solo_end.append( notes_item.pos )            
+            debug_extra( "Found end {} at {} - ( {}, {} )".format( num_to_text[ notes_item.value ], format_location( notes_item.pos ),notes_item.value, notes_item.pos ), True )        
         #Check for any gem under solo marker... we need at least one gem for the solo to be valid
         #for midi_check in [60,61,62,63,64,72,73,74,75,76,84,85,86,87,88,96,97,98,99,100]:            
         for index, item in enumerate(solo_start):
             gems_text = '';
-            if ( filter(lambda x: x.valor >=60 and x.valor <=64 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
+            if ( filter(lambda x: x.value >=60 and x.value <=64 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
                 counter[ item ] += 1
                 gems_text += 'Easy + '
-            if ( filter(lambda x: x.valor >=72 and x.valor <=76 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
+            if ( filter(lambda x: x.value >=72 and x.value <=76 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
                 counter[ item ] += 1
                 gems_text += 'Medium + '
-            if ( filter(lambda x: x.valor >=84 and x.valor <=88 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
+            if ( filter(lambda x: x.value >=84 and x.value <=88 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
                 counter[ item ] += 1
                 gems_text += 'Hard + '
-            if ( filter(lambda x: x.valor >=96 and x.valor <=100 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
+            if ( filter(lambda x: x.value >=96 and x.value <=100 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
                 counter[ item ] += 1
                 gems_text += 'Expert + '
             
@@ -913,31 +913,31 @@ def handle_guitar(content, part_name ):
         all_y_expert = Counter()
         all_b_expert = Counter()
         all_o_expert = Counter()
-        for notas_item in filter(lambda x: x.valor == 96, l_gems):
-            all_g_expert[ notas_item.pos ] = 1
+        for notes_item in filter(lambda x: x.value == 96, l_gems):
+            all_g_expert[ notes_item.pos ] = 1
             has_g = True
-        for notas_item in filter(lambda x: x.valor == 97, l_gems):
-            all_r_expert[ notas_item.pos ] = 1
+        for notes_item in filter(lambda x: x.value == 97, l_gems):
+            all_r_expert[ notes_item.pos ] = 1
             has_r = True
-        for notas_item in filter(lambda x: x.valor == 98, l_gems):
-            all_y_expert[ notas_item.pos ] = 1
+        for notes_item in filter(lambda x: x.value == 98, l_gems):
+            all_y_expert[ notes_item.pos ] = 1
             has_y = True
-        for notas_item in filter(lambda x: x.valor == 99, l_gems):
-            all_b_expert[ notas_item.pos ] = 1
+        for notes_item in filter(lambda x: x.value == 99, l_gems):
+            all_b_expert[ notes_item.pos ] = 1
             has_b = True
-        for notas_item in filter(lambda x: x.valor == 100, l_gems):
-            all_o_expert[ notas_item.pos ] = 1
+        for notes_item in filter(lambda x: x.value == 100, l_gems):
+            all_o_expert[ notes_item.pos ] = 1
             has_o = True        
         midi_notes = [ [60, 72, 84], [61, 73, 85], [62, 74, 86], [63, 75, 87], [64, 76, 88]]    
         #Green
         for midi_note in midi_notes[0]:
             counter = 0        
-            for notas_item in filter(lambda x: x.valor == midi_note, l_gems):
+            for notes_item in filter(lambda x: x.value == midi_note, l_gems):
                 counter += 1
-                if not ( all_g_expert[ notas_item.pos ] ):
-                    debug( "ERROR: {} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notas_item.pos ) ) , True )
+                if not ( all_g_expert[ notes_item.pos ] ):
+                    debug( "ERROR: {} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notes_item.pos ) ) , True )
                 
-                    localTmpl[ output_part_var + "_general_issues"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notas_item.pos ), num_to_text[ midi_note ] ) 
+                    localTmpl[ output_part_var + "_general_issues"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notes_item.pos ), num_to_text[ midi_note ] ) 
                     has_error = True
             if( counter < 1 and has_g):
                 debug( "ERROR: No {} gems not found, must use all nodes used in expert".format( num_to_text[ midi_note ] ) , True )
@@ -947,11 +947,11 @@ def handle_guitar(content, part_name ):
         #Red
         for midi_note in midi_notes[1]:
             counter = 0        
-            for notas_item in filter(lambda x: x.valor == midi_note, l_gems):
-                if not ( all_r_expert[ notas_item.pos ] ):
-                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notas_item.pos ) ) , True )
+            for notes_item in filter(lambda x: x.value == midi_note, l_gems):
+                if not ( all_r_expert[ notes_item.pos ] ):
+                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notes_item.pos ) ) , True )
                 
-                    localTmpl[ output_part_var + "_general_issues"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notas_item.pos ), num_to_text[ midi_note ] )
+                    localTmpl[ output_part_var + "_general_issues"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notes_item.pos ), num_to_text[ midi_note ] )
             if( counter < 1 and has_r):
                 debug( "ERROR: No {} gems not found, must use all nodes used in expert".format( num_to_text[ midi_note ] ) , True )
                 
@@ -960,11 +960,11 @@ def handle_guitar(content, part_name ):
         #Yellow
         for midi_note in midi_notes[2]:
             counter = 0        
-            for notas_item in filter(lambda x: x.valor == midi_note, l_gems):
-                if not ( all_y_expert[ notas_item.pos ] ):
-                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notas_item.pos ) ) , True )
+            for notes_item in filter(lambda x: x.value == midi_note, l_gems):
+                if not ( all_y_expert[ notes_item.pos ] ):
+                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notes_item.pos ) ) , True )
                 
-                    localTmpl[ output_part_var + "_general_issues"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notas_item.pos ), num_to_text[ midi_note ] )
+                    localTmpl[ output_part_var + "_general_issues"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notes_item.pos ), num_to_text[ midi_note ] )
             if( counter < 1 and has_y):
                 debug( "ERROR: No {} gems not found, must use all nodes used in expert".format( num_to_text[ midi_note ] ) , True )
                 
@@ -973,11 +973,11 @@ def handle_guitar(content, part_name ):
         #Blue
         for midi_note in midi_notes[3]:
             counter = 0        
-            for notas_item in filter(lambda x: x.valor == midi_note, l_gems):
-                if not ( all_b_expert[ notas_item.pos ] ):
-                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notas_item.pos ) ) , True )
+            for notes_item in filter(lambda x: x.value == midi_note, l_gems):
+                if not ( all_b_expert[ notes_item.pos ] ):
+                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notes_item.pos ) ) , True )
                 
-                    localTmpl[ output_part_var + "_general_issues"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notas_item.pos ), num_to_text[ midi_note ] )
+                    localTmpl[ output_part_var + "_general_issues"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notes_item.pos ), num_to_text[ midi_note ] )
             if( counter < 1 and has_b):
                 debug( "ERROR: No {} gems not found, must use all nodes used in expert".format( num_to_text[ midi_note ] ) , True )
                 
@@ -986,11 +986,11 @@ def handle_guitar(content, part_name ):
         #Orange
         for midi_note in midi_notes[4]:
             counter = 0        
-            for notas_item in filter(lambda x: x.valor == midi_note, l_gems):
-                if not ( all_o_expert[ notas_item.pos ] ):
-                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notas_item.pos ) ) , True )
+            for notes_item in filter(lambda x: x.value == midi_note, l_gems):
+                if not ( all_o_expert[ notes_item.pos ] ):
+                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notes_item.pos ) ) , True )
                 
-                    localTmpl[ output_part_var + "_general_issues"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notas_item.pos ), num_to_text[ midi_note ] )
+                    localTmpl[ output_part_var + "_general_issues"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notes_item.pos ), num_to_text[ midi_note ] )
             if( counter < 1 and has_o):
                 debug( "ERROR: No {} gems not found, must use all nodes used in expert".format( num_to_text[ midi_note ] ) , True )
                 
@@ -999,16 +999,16 @@ def handle_guitar(content, part_name ):
         debug( "=================== ENDS GENERAL " + part_name + ": NO MATCHING GEMS ON EXPERT / ALL NODES BEING USED ===================", True )
         '''
         #Get all positions for ods
-        for notas_item in filter(lambda x: x.valor == 116 , l_gems):            
+        for notes_item in filter(lambda x: x.value == 116 , l_gems):            
             if( part_name == "PART GUITAR" ):                
-                guitar_pos_od.append( int ( notas_item.pos / 1920 ) + 1 )
+                guitar_pos_od.append( int ( notes_item.pos / 1920 ) + 1 )
             elif( part_name == "PART RHYTHM" ):
-                rhythm_pos_od.append( int ( notas_item.pos / 1920 ) + 1 )
+                rhythm_pos_od.append( int ( notes_item.pos / 1920 ) + 1 )
             elif( part_name == "PART BASS" ):
-                bass_pos_od.append( int ( notas_item.pos / 1920 ) + 1 )
+                bass_pos_od.append( int ( notes_item.pos / 1920 ) + 1 )
 
         #Some totals
-        total_ods = len( filter(lambda x: x.valor == 116, l_gems) )
+        total_ods = len( filter(lambda x: x.value == 116, l_gems) )
         debug( "", True )
         debug( "=================== TOTAL " + part_name + ": Some numbers and stats ===================", True )
         debug( "Three notes including G+O gems: {}".format( len( counter_positions ) ), True )
@@ -1133,16 +1133,16 @@ def handle_vocals(content, part_name ):
             #Just parse or debug those notes that are really in the chart
             #we can exclude notes off, text events, etc.
             if( midi_parts[0].lower() == 'e' and re.search("^9", midi_parts[2] ) ):
-                l_gems.append( Nota(decval, noteloc) )
+                l_gems.append( Note(decval, noteloc) )
                 debug_extra("Starts with 9: Midi # {}, MBT {}, Type {} ".format( str( decval ), str( noteloc ),str( midi_parts[2] ) ) )
                 debug( "{} at {}".format( num_to_text[decval], format_location( noteloc ) ), True )
             elif( midi_parts[0].lower() == 'e' and re.search("^8", midi_parts[2] ) ):            
-                r_gems.append( Nota(decval, noteloc) )
+                r_gems.append( Note(decval, noteloc) )
                 c.append(noteloc)
                 debug_extra("Starts with 8: Midi # {}, MBT {}, Type {} ".format( str( decval ), str( noteloc ),str( midi_parts[2] ) ) )
                 debug( "{} at {}".format( num_to_text[decval], format_location( noteloc ) ), True )
             else:
-                p_gems.append( Nota(decval, noteloc) )
+                p_gems.append( Note(decval, noteloc) )
                 debug_extra("Text Event: Midi # {}, MBT {}, Type {}, Extra {} ".format( str( decval ), str( noteloc ),str( midi_parts[1] ),str( midi_parts[2] ) ) )
                 debug( "Text Event found at {}".format( format_location( noteloc ) ), True )
                 
@@ -1158,41 +1158,41 @@ def handle_vocals(content, part_name ):
         phrase_start = []
         phrase_end = []
         #Start notes
-        for notas_item in l_gems:
-            if notas_item.valor == 105 or notas_item.valor == 106:
-                #console_msg( str(len(phrase_start)) + "," + str(len(phrase_end)) + " - " + num_to_text[ notas_item.valor ] + "," + str(notas_item.pos) + "\n" )
+        for notes_item in l_gems:
+            if notes_item.value == 105 or notes_item.value == 106:
+                #console_msg( str(len(phrase_start)) + "," + str(len(phrase_end)) + " - " + num_to_text[ notes_item.value ] + "," + str(notes_item.pos) + "\n" )
                 # Don't add a P2 marker, if there is a standard one there.
-                if notas_item.valor == 106:
+                if notes_item.value == 106:
                     if len(phrase_start) > 1:
-                        if phrase_start[ len(phrase_start) - 1 ] == notas_item.pos:
+                        if phrase_start[ len(phrase_start) - 1 ] == notes_item.pos:
                             #console_msg('Skipping P2 marker, as a normal marker exists here...\n')
                             pass
                         else:
-                            phrase_start.append( notas_item.pos )
+                            phrase_start.append( notes_item.pos )
                 else:
-                    phrase_start.append( notas_item.pos )
+                    phrase_start.append( notes_item.pos )
                 #We need the global for harm2 so we can use for HARM3
                 if( part_name == "HARM2" ):
-                    global_harm2_phase_start.append( notas_item.pos )
-                debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ),notas_item.valor, notas_item.pos ), True ) 
+                    global_harm2_phase_start.append( notes_item.pos )
+                debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ notes_item.value ], format_location( notes_item.pos ),notes_item.value, notes_item.pos ), True ) 
         #End notes
-        for notas_item in r_gems:
-            if notas_item.valor == 105 or notas_item.valor == 106:
-                #console_msg( str(len(phrase_start)) + "," + str(len(phrase_end)) + " - " + num_to_text[ notas_item.valor ] + "," + str(notas_item.pos) + "\n" )
+        for notes_item in r_gems:
+            if notes_item.value == 105 or notes_item.value == 106:
+                #console_msg( str(len(phrase_start)) + "," + str(len(phrase_end)) + " - " + num_to_text[ notes_item.value ] + "," + str(notes_item.pos) + "\n" )
                 # Don't add a P2 marker, if there is a standard one there.
-                if notas_item.valor == 106:
+                if notes_item.value == 106:
                     if len(phrase_end) > 1:
-                        if phrase_end[ len(phrase_end) - 1 ] == notas_item.pos:
+                        if phrase_end[ len(phrase_end) - 1 ] == notes_item.pos:
                             #console_msg('Skipping P2 marker, as a normal marker exists here...\n')
                             pass
                         else:
-                            phrase_end.append( notas_item.pos )
+                            phrase_end.append( notes_item.pos )
                 else:
-                    phrase_end.append( notas_item.pos )
+                    phrase_end.append( notes_item.pos )
                 #We need the global for harm2 so we can use for HARM3
                 if( part_name == "HARM2" ):
-                    global_harm2_phase_end.append( notas_item.pos )            
-                debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ),notas_item.valor, notas_item.pos ), True )         
+                    global_harm2_phase_end.append( notes_item.pos )            
+                debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ notes_item.value ], format_location( notes_item.pos ),notes_item.value, notes_item.pos ), True )         
         #If we are looping HARM3 we assume we dont have any phrase marker, we take HARM2 markers as baaseline
         # Actually, we should check if these markers exist first before assuming things.
         if( part_name == "HARM3" ):
@@ -1273,13 +1273,13 @@ def handle_vocals(content, part_name ):
         od_start = []
         od_end = []
         #Start notes
-        for notas_item in filter(lambda x: x.valor == 116 , l_gems):
-            od_start.append( notas_item.pos )
-            debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ),notas_item.valor, notas_item.pos ), True ) 
+        for notes_item in filter(lambda x: x.value == 116 , l_gems):
+            od_start.append( notes_item.pos )
+            debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ notes_item.value ], format_location( notes_item.pos ),notes_item.value, notes_item.pos ), True ) 
         #End notes
-        for notas_item in filter(lambda x: x.valor == 116 , r_gems):
-            od_end.append( notas_item.pos )            
-            debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ),notas_item.valor, notas_item.pos ), True ) 
+        for notes_item in filter(lambda x: x.value == 116 , r_gems):
+            od_end.append( notes_item.pos )            
+            debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ notes_item.value ], format_location( notes_item.pos ),notes_item.value, notes_item.pos ), True ) 
         #For od marker we do ....
         for index, item in enumerate(od_start):
             #Print
@@ -1290,11 +1290,11 @@ def handle_vocals(content, part_name ):
         debug( "", True )
         debug( "=================== " + part_name + ": Notes without space ===================", True )
         #Start notes
-        for notas_item in l_gems:
-            for notas_item_2 in filter(lambda x: x.pos == notas_item.pos , r_gems):
-                debug("ERROR: Note {} starting at {} needs at least 2 64ths note gap between notes".format( num_to_text[ notas_item_2.valor ], format_location( notas_item_2.pos ) ), True)
+        for notes_item in l_gems:
+            for notes_item_2 in filter(lambda x: x.pos == notes_item.pos , r_gems):
+                debug("ERROR: Note {} starting at {} needs at least 2 64ths note gap between notes".format( num_to_text[ notes_item_2.value ], format_location( notes_item_2.pos ) ), True)
                 
-                localTmpl[ output_part_var + "_general_issues"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>Note {} needs at least a 1/32nd gap between notes</span> </span></div>'.format( format_location( notas_item_2.pos ), num_to_text[ notas_item_2.valor ] )
+                localTmpl[ output_part_var + "_general_issues"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>Note {} needs at least a 1/32nd gap between notes</span> </span></div>'.format( format_location( notes_item_2.pos ), num_to_text[ notes_item_2.value ] )
                 
                 has_error = True
             
@@ -1380,11 +1380,11 @@ def handle_keys(content, part_name ):
             #Just parse or debug those notes that are really in the chart
             #we can exclude notes off, text events, etc.
             if( midi_parts[0].lower() == 'e' and re.search("^9", midi_parts[2] ) ):
-                l_gems.append( Nota(decval, noteloc) )
+                l_gems.append( Note(decval, noteloc) )
                 debug_extra("Starts with 9: Midi # {}, MBT {}, Type {} ".format( str( decval ), str( noteloc ),str( midi_parts[2] ) ) )
                 debug_extra( "{} at {}".format( num_to_text[decval], format_location( noteloc ) ), True )
             elif( midi_parts[0].lower() == 'e' and re.search("^8", midi_parts[2] ) ):            
-                r_gems.append( Nota(decval, noteloc) )
+                r_gems.append( Note(decval, noteloc) )
                 debug_extra("Starts with 8: Midi # {}, MBT {}, Type {} ".format( str( decval ), str( noteloc ),str( midi_parts[2] ) ) )
                 debug_extra( "{} at {}".format( num_to_text[decval], format_location( noteloc ) ), True )
             else:
@@ -1404,10 +1404,10 @@ def handle_keys(content, part_name ):
             counter_internal = 0    
             counter_global = Counter()
             gems_in_chord = Counter()
-            for notas_item in filter(lambda x: x.valor >= item_note[0] and x.valor <= item_note[1], l_gems):
-                debug_extra( "Found {} at {} - ( {}, {}): ".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ), notas_item.valor , notas_item.pos ), True ) 
-                counter_global[(notas_item.pos)] += 1
-                gems_in_chord[ ( notas_item.pos, notas_item.valor ) ] += 1
+            for notes_item in filter(lambda x: x.value >= item_note[0] and x.value <= item_note[1], l_gems):
+                debug_extra( "Found {} at {} - ( {}, {}): ".format( num_to_text[ notes_item.value ], format_location( notes_item.pos ), notes_item.value , notes_item.pos ), True ) 
+                counter_global[(notes_item.pos)] += 1
+                gems_in_chord[ ( notes_item.pos, notes_item.value ) ] += 1
             debug_extra("Validating chords....", True)
             #Do we have chords?
             for (a, b) in enumerate(counter_global):            
@@ -1430,27 +1430,27 @@ def handle_keys(content, part_name ):
         debug( "", True )
         debug( "=================== GENERAL KEYS: No gems under solo marker ===================", True )
         #Start notes
-        for notas_item in filter(lambda x: x.valor == 103 , l_gems):
-            solo_start.append( notas_item.pos )
-            debug_extra( "Found start {} at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ),notas_item.valor, notas_item.pos ), True ) 
+        for notes_item in filter(lambda x: x.value == 103 , l_gems):
+            solo_start.append( notes_item.pos )
+            debug_extra( "Found start {} at {} - ( {}, {} )".format( num_to_text[ notes_item.value ], format_location( notes_item.pos ),notes_item.value, notes_item.pos ), True ) 
         #End notes
-        for notas_item in filter(lambda x: x.valor == 103 , r_gems):
-            solo_end.append( notas_item.pos )            
-            debug_extra( "Found end {} at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ),notas_item.valor, notas_item.pos ), True )        
+        for notes_item in filter(lambda x: x.value == 103 , r_gems):
+            solo_end.append( notes_item.pos )            
+            debug_extra( "Found end {} at {} - ( {}, {} )".format( num_to_text[ notes_item.value ], format_location( notes_item.pos ),notes_item.value, notes_item.pos ), True )        
         #Check for any gem under solo marker... we need at least one gem for the solo to be valid
         #for midi_check in [60,61,62,63,64,72,73,74,75,76,84,85,86,87,88,96,97,98,99,100]:            
         for index, item in enumerate(solo_start):
             gems_text = '';
-            if ( filter(lambda x: x.valor >=60 and x.valor <=64 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
+            if ( filter(lambda x: x.value >=60 and x.value <=64 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
                 counter[ item ] += 1
                 gems_text += 'Easy + '
-            if ( filter(lambda x: x.valor >=72 and x.valor <=76 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
+            if ( filter(lambda x: x.value >=72 and x.value <=76 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
                 counter[ item ] += 1
                 gems_text += 'Medium + '
-            if ( filter(lambda x: x.valor >=84 and x.valor <=88 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
+            if ( filter(lambda x: x.value >=84 and x.value <=88 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
                 counter[ item ] += 1
                 gems_text += 'Hard + '
-            if ( filter(lambda x: x.valor >=96 and x.valor <=100 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
+            if ( filter(lambda x: x.value >=96 and x.value <=100 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
                 counter[ item ] += 1
                 gems_text += 'Expert + '
             
@@ -1471,31 +1471,31 @@ def handle_keys(content, part_name ):
         all_y_expert = Counter()
         all_b_expert = Counter()
         all_o_expert = Counter()
-        for notas_item in filter(lambda x: x.valor == 96, l_gems):
-            all_g_expert[ notas_item.pos ] = 1
+        for notes_item in filter(lambda x: x.value == 96, l_gems):
+            all_g_expert[ notes_item.pos ] = 1
             has_g = True
-        for notas_item in filter(lambda x: x.valor == 97, l_gems):
-            all_r_expert[ notas_item.pos ] = 1
+        for notes_item in filter(lambda x: x.value == 97, l_gems):
+            all_r_expert[ notes_item.pos ] = 1
             has_r = True
-        for notas_item in filter(lambda x: x.valor == 98, l_gems):
-            all_y_expert[ notas_item.pos ] = 1
+        for notes_item in filter(lambda x: x.value == 98, l_gems):
+            all_y_expert[ notes_item.pos ] = 1
             has_y = True
-        for notas_item in filter(lambda x: x.valor == 99, l_gems):
-            all_b_expert[ notas_item.pos ] = 1
+        for notes_item in filter(lambda x: x.value == 99, l_gems):
+            all_b_expert[ notes_item.pos ] = 1
             has_b = True
-        for notas_item in filter(lambda x: x.valor == 100, l_gems):
-            all_o_expert[ notas_item.pos ] = 1
+        for notes_item in filter(lambda x: x.value == 100, l_gems):
+            all_o_expert[ notes_item.pos ] = 1
             has_o = True        
         midi_notes = [ [60, 72, 84], [61, 73, 85], [62, 74, 86], [63, 75, 87], [64, 76, 88]]    
         #Green
         for midi_note in midi_notes[0]:
             counter = 0        
-            for notas_item in filter(lambda x: x.valor == midi_note, l_gems):
+            for notes_item in filter(lambda x: x.value == midi_note, l_gems):
                 counter += 1
-                if not ( all_g_expert[ notas_item.pos ] ):
-                    debug( "ERROR: {} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notas_item.pos ) ) , True )
+                if not ( all_g_expert[ notes_item.pos ] ):
+                    debug( "ERROR: {} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notes_item.pos ) ) , True )
                 
-                    localTmpl[ "keys_gems_not_found" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notas_item.pos ), num_to_text[ midi_note ] ) 
+                    localTmpl[ "keys_gems_not_found" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notes_item.pos ), num_to_text[ midi_note ] ) 
                     has_error = True
             if( counter < 1 and has_g):
                 debug( "ERROR: No {} gems not found, must use all nodes used in expert".format( num_to_text[ midi_note ] ) , True )
@@ -1505,11 +1505,11 @@ def handle_keys(content, part_name ):
         #Red
         for midi_note in midi_notes[1]:
             counter = 0        
-            for notas_item in filter(lambda x: x.valor == midi_note, l_gems):
-                if not ( all_r_expert[ notas_item.pos ] ):
-                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notas_item.pos ) ) , True )
+            for notes_item in filter(lambda x: x.value == midi_note, l_gems):
+                if not ( all_r_expert[ notes_item.pos ] ):
+                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notes_item.pos ) ) , True )
                 
-                    localTmpl[ "keys_gems_not_found" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notas_item.pos ), num_to_text[ midi_note ] )
+                    localTmpl[ "keys_gems_not_found" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notes_item.pos ), num_to_text[ midi_note ] )
             if( counter < 1 and has_r):
                 debug( "ERROR: No {} gems not found, must use all nodes used in expert".format( num_to_text[ midi_note ] ) , True )
                 
@@ -1518,11 +1518,11 @@ def handle_keys(content, part_name ):
         #Yellow
         for midi_note in midi_notes[2]:
             counter = 0        
-            for notas_item in filter(lambda x: x.valor == midi_note, l_gems):
-                if not ( all_y_expert[ notas_item.pos ] ):
-                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notas_item.pos ) ) , True )
+            for notes_item in filter(lambda x: x.value == midi_note, l_gems):
+                if not ( all_y_expert[ notes_item.pos ] ):
+                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notes_item.pos ) ) , True )
                 
-                    localTmpl[ "keys_gems_not_found" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notas_item.pos ), num_to_text[ midi_note ] )
+                    localTmpl[ "keys_gems_not_found" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notes_item.pos ), num_to_text[ midi_note ] )
             if( counter < 1 and has_y):
                 debug( "ERROR: No {} gems not found, must use all nodes used in expert".format( num_to_text[ midi_note ] ) , True )
                 
@@ -1531,11 +1531,11 @@ def handle_keys(content, part_name ):
         #Blue
         for midi_note in midi_notes[3]:
             counter = 0        
-            for notas_item in filter(lambda x: x.valor == midi_note, l_gems):
-                if not ( all_b_expert[ notas_item.pos ] ):
-                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notas_item.pos ) ) , True )
+            for notes_item in filter(lambda x: x.value == midi_note, l_gems):
+                if not ( all_b_expert[ notes_item.pos ] ):
+                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notes_item.pos ) ) , True )
                 
-                    localTmpl[    "keys_gems_not_found" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notas_item.pos ), num_to_text[ midi_note ] )
+                    localTmpl[    "keys_gems_not_found" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notes_item.pos ), num_to_text[ midi_note ] )
             if( counter < 1 and has_b):
                 debug( "ERROR: No {} gems not found, must use all nodes used in expert".format( num_to_text[ midi_note ] ) , True )
                 
@@ -1544,11 +1544,11 @@ def handle_keys(content, part_name ):
         #Orange
         for midi_note in midi_notes[4]:
             counter = 0        
-            for notas_item in filter(lambda x: x.valor == midi_note, l_gems):
-                if not ( all_o_expert[ notas_item.pos ] ):
-                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notas_item.pos ) ) , True )
+            for notes_item in filter(lambda x: x.value == midi_note, l_gems):
+                if not ( all_o_expert[ notes_item.pos ] ):
+                    debug( "{} not found on Expert at {}".format( num_to_text[ midi_note ], format_location( notes_item.pos ) ) , True )
                 
-                    localTmpl[    "keys_gems_not_found" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notas_item.pos ), num_to_text[ midi_note ] )
+                    localTmpl[    "keys_gems_not_found" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} not found on Expert</span> </span></div>'.format( format_location( notes_item.pos ), num_to_text[ midi_note ] )
             if( counter < 1 and has_o):
                 debug( "ERROR: No {} gems not found, must use all nodes used in expert".format( num_to_text[ midi_note ] ) , True )
                 
@@ -1558,10 +1558,10 @@ def handle_keys(content, part_name ):
         '''
         #Get all positions for ods
         keys_pos_od = []
-        for notas_item in filter(lambda x: x.valor == 116 , l_gems):
-            keys_pos_od.append( int ( notas_item.pos / 1920 ) + 1 )
+        for notes_item in filter(lambda x: x.value == 116 , l_gems):
+            keys_pos_od.append( int ( notes_item.pos / 1920 ) + 1 )
         #Some totals
-        total_ods = len( filter(lambda x: x.valor == 116, l_gems) )
+        total_ods = len( filter(lambda x: x.value == 116, l_gems) )
         debug( "", True )
         debug( "=================== TOTAL KEYS: Some numbers and stats ===================", True )
         debug( "Total Solo Markers: {}".format( len( solo_start ) ), True )
@@ -1676,12 +1676,12 @@ def handle_pro_keys(content, part_name ):
             #Just parse or debug those notes that are really in the chart
             #we can exclude notes off, text events, etc.
             if( midi_parts[0].lower() == 'e' and re.search("^9", midi_parts[2] ) ):
-                l_gems.append( Nota(decval, noteloc) )
+                l_gems.append( Note(decval, noteloc) )
                 c[ noteloc ] += 1
                 debug_extra("Starts with 9: Midi # {}, MBT {}, Type {} ".format( str( decval ), str( noteloc ),str( midi_parts[2] ) ) )
                 #debug_extra( "{} at {}".format( num_to_text[decval], format_location( noteloc ) ), True )
             elif( midi_parts[0].lower() == 'e' and re.search("^8", midi_parts[2] ) ):            
-                r_gems.append( Nota(decval, noteloc) )
+                r_gems.append( Note(decval, noteloc) )
                 debug_extra("Starts with 8: Midi # {}, MBT {}, Type {} ".format( str( decval ), str( noteloc ),str( midi_parts[2] ) ) )
                 #debug_extra( "{} at {}".format( num_to_text[decval], format_location( noteloc ) ), True )
             else:
@@ -1707,27 +1707,27 @@ def handle_pro_keys(content, part_name ):
         debug( "", True )
         debug( "=================== GENERAL KEYS: No gems under solo marker ===================", True )
         #Start notes
-        for notas_item in filter(lambda x: x.valor == 103 , l_gems):
-            solo_start.append( notas_item.pos )
-            debug_extra( "Found start {} at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ),notas_item.valor, notas_item.pos ), True ) 
+        for notes_item in filter(lambda x: x.value == 103 , l_gems):
+            solo_start.append( notes_item.pos )
+            debug_extra( "Found start {} at {} - ( {}, {} )".format( num_to_text[ notes_item.value ], format_location( notes_item.pos ),notes_item.value, notes_item.pos ), True ) 
         #End notes
-        for notas_item in filter(lambda x: x.valor == 103 , r_gems):
-            solo_end.append( notas_item.pos )            
-            debug_extra( "Found end {} at {} - ( {}, {} )".format( num_to_text[ notas_item.valor ], format_location( notas_item.pos ),notas_item.valor, notas_item.pos ), True )        
+        for notes_item in filter(lambda x: x.value == 103 , r_gems):
+            solo_end.append( notes_item.pos )            
+            debug_extra( "Found end {} at {} - ( {}, {} )".format( num_to_text[ notes_item.value ], format_location( notes_item.pos ),notes_item.value, notes_item.pos ), True )        
         #Check for any gem under solo marker... we need at least one gem for the solo to be valid
         #for midi_check in [60,61,62,63,64,72,73,74,75,76,84,85,86,87,88,96,97,98,99,100]:            
         for index, item in enumerate(solo_start):
             gems_text = '';
-            if ( filter(lambda x: x.valor >=60 and x.valor <=64 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
+            if ( filter(lambda x: x.value >=60 and x.value <=64 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
                 counter[ item ] += 1
                 gems_text += 'Easy + '
-            if ( filter(lambda x: x.valor >=72 and x.valor <=76 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
+            if ( filter(lambda x: x.value >=72 and x.value <=76 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
                 counter[ item ] += 1
                 gems_text += 'Medium + '
-            if ( filter(lambda x: x.valor >=84 and x.valor <=88 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
+            if ( filter(lambda x: x.value >=84 and x.value <=88 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
                 counter[ item ] += 1
                 gems_text += 'Hard + '
-            if ( filter(lambda x: x.valor >=96 and x.valor <=100 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
+            if ( filter(lambda x: x.value >=96 and x.value <=100 and x.pos >= item and x.pos <= solo_end[index], l_gems) ):
                 counter[ item ] += 1
                 gems_text += 'Expert + '
             
@@ -1741,11 +1741,11 @@ def handle_pro_keys(content, part_name ):
         
         #Get all positions for ods
         keys_pos_od = []
-        for notas_item in filter(lambda x: x.valor == 116 , l_gems):
-            keys_pos_od.append( int ( notas_item.pos / 1920 ) + 1 )
+        for notes_item in filter(lambda x: x.value == 116 , l_gems):
+            keys_pos_od.append( int ( notes_item.pos / 1920 ) + 1 )
         '''
         #Some totals
-        total_ods = len( filter(lambda x: x.valor == 116, l_gems) )
+        total_ods = len( filter(lambda x: x.value == 116, l_gems) )
         debug( "", True )
         debug( "=================== TOTAL PRO KEYS: Some numbers and stats ===================", True )
         #debug( "Total Solo Markers: {}".format( len( solo_start ) ), True )
@@ -1830,7 +1830,7 @@ def handle_events(content, part_name ):
                 debug_extra("Starts with 8: Midi # {}, MBT {}, Type {} ".format( str( decval ), str( noteloc ),str( midi_parts[2] ) ) )
                 debug( "{} at {}".format( decval, format_location( noteloc ) ), True )
             else:
-                p_gems.append( Nota(decval, noteloc) )
+                p_gems.append( Note(decval, noteloc) )
                 debug_extra("Text Event: Midi # {}, MBT {}, Type {}, Extra {} ".format( str( decval ), str( noteloc ),str( midi_parts[1] ),str( midi_parts[2] ) ) )
                 debug( "Text Event found at {}".format( format_location( noteloc ) ), True )
         # TO DO: Improve this with a regex?
