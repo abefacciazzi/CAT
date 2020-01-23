@@ -2042,7 +2042,7 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
                         <li class=""><a href="#">OD Count:    ''' + "{}".format( dTmpl['keys_total_ods'] ) + '''</a></li>
                         <li class="nav-header">Pro Keys</li>
                         <li class=""><a href="#">OD Count:    ''' + "{}".format( dTmpl['prokeys_total_ods'] ) + '''</a></li>
-                        <li class="nav-header">Vocals / Harmonies</li>
+                        <li class="nav-header">Vocals</li>
                         <li class=""><a href="#">Vocals OD Count: ''' + str( len( dTmpl['vocals_od_start'] ) ) + '''</a></li>
                         <li class=""><a href="#">Harmony 1 OD Count: ''' + str( len( dTmpl['harm1_od_start'] ) ) + '''</a></li>
                     </ul>
@@ -2288,7 +2288,7 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
                         </div>
                         <div class="tab-pane" id="tab_prokeys">
                             <div class="span12">'''
-    if( var_html ):
+    if( dTmpl['real_keys_x_general_issues'] + dTmpl['real_keys_h_general_issues'] + dTmpl['real_keys_m_general_issues'] + dTmpl['real_keys_e_general_issues'] != '' ):
         var_html += '''
                                 <div>
                                     <h3 class="alert alert-error">Pro Keys Issues</h3>
