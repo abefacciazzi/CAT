@@ -1208,10 +1208,10 @@ def handle_vocals(content, part_name ):
         special_characters = [',','�','’','"']
         special_characters_error = ['comma','smart apostrophe','smart apostrophe','quotes']
         remove_words = string.maketrans("#^","  ")
-        check_caps = False
         last_note = 0
         #For each phrase marker we find the lyrics
         for index, item in enumerate(phrase_start):
+            check_caps = False
             full_phrase = ''
             output_full_phrase = ''
             debug_extra( "Phrase Marker #{} starts at {} ends at {} - [ {},{} ]".format( index+1, format_location( item ), format_location( phrase_end[index] ), item, phrase_end[index] ) ,True )
@@ -1223,12 +1223,13 @@ def handle_vocals(content, part_name ):
                     
                     debug_extra("Syllable {} found at {}".format(lyric_positions[ od_midi_note.pos ], od_midi_note.pos), True)
                     debug_extra("Last characeter is {}".format(lyric_positions[ od_midi_note.pos ][-1:] ), True)
-                    if lyric_positions[ od_midi_note.pos ] != '+':
+                    if lyric_positions[ od_midi_note.pos ] != '+' and lyric_positions[ od_midi_note.pos ] != "+$":
+
                         syllable = lyric_positions[ od_midi_note.pos ] + ' '
-                        if( lyric_positions[ od_midi_note.pos ][-1:] == '-' ):
-                            syllable = lyric_positions[ od_midi_note.pos ][:-1] + ''
-                        if( lyric_positions[ od_midi_note.pos ][-1:] == '=' ):
-                            syllable = lyric_positions[ od_midi_note.pos ][:-1] + '- '
+
+                        syllable = syllable.replace("$", "")
+                        syllable = syllable.replace("- ", "")
+                        syllable = syllable.replace("= ", "-")
                         
                         #At this stage the output is the same as the syllable
                         output_syllable = syllable
