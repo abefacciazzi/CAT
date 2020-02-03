@@ -1965,34 +1965,37 @@ with open(OUTPUT_FILE, 'w') as f:
         debug_extra( 'END OF TRACK', True )
         #
         
-        part = re.findall("^\s*NAME\s+(.*)", track_content, re.MULTILINE)
+        part        = re.findall("^\s*NAME\s+(.*)", track_content, re.MULTILINE)
+
+        trackname   = ""
+        track       = re.findall("<X 0 0+(.*)\n+(.*)", track_content)
+        track       = str(track).split(", ")
         
+        if len(track) > 1:
+            trackname   = (str(track[1])[1:-2])
+            if trackname.endswith("'"):
+                trackname = trackname[:-1]
+            trackname = base64.b64decode(trackname)[2:]
+
         for i in part:
             partname = i
-            if partname.startswith("\""):
-                partname = partname[1:-1] # Remove any "" around multiple words.
-            if partname.endswith(' untitled MIDI item'):
-                partname = partname[:-19] # untitled MIDI item removal
-            if partname.endswith(' glued'):
-                partname = partname[:-6] # un-glued the name.
-            if partname.endswith('REAL _KEYS_H'):
-                partname = 'PART REAL_KEYS_H' # Check for this, because we can't assume everyone noticed.
-
-            partnamesplit = partname.split(' - ') # This is here for the automatic names of added MIDI files.
-            partname = partnamesplit[0]
         
         debug_extra( "Part name is {}".format( partname ), True )
         
-        if partname:
-            #console_msg( partname )
-            #console_msg( '\n' )    
-            func = switch_map.get(partname, None)
+        if trackname:
+
+            #console_msg( trackname )
+            #console_msg( " - " )  
+            #console_msg( partname )  
+            #console_msg( '\n' )  
+
+            func = switch_map.get(trackname, None)
             if func:
                 console_msg( 'Processing ' ) # Added this for visual feedback of the script running.
-                console_msg( partname )
+                console_msg( trackname )
                 console_msg( '...\n' )
                 debug("########################### Executing function to handle %s #################################" % part[0] , True)
-                fTmpl = func( track_content, partname )
+                fTmpl = func( track_content, trackname )
                 dTmpl.update(fTmpl)
         
         track_content = ""
