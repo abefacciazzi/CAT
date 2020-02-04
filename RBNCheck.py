@@ -1977,8 +1977,13 @@ with open(OUTPUT_FILE, 'w') as f:
                 trackname = trackname[:-1]
             trackname = base64.b64decode(trackname)[2:]
 
+
         for i in part:
             partname = i
+
+            if "rhythm" in partname.lower(): 
+                trackname = "PART RHYTHM"
+                
         
         debug_extra( "Part name is {}".format( partname ), True )
         
