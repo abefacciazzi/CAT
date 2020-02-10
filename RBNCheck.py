@@ -1192,13 +1192,11 @@ def handle_vocals(content, part_name ):
                 #We need the global for harm2 so we can use for HARM3
                 if( part_name == "HARM2" ):
                     global_harm2_phase_end.append( notes_item.pos )            
-                debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ notes_item.value ], format_location( notes_item.pos ),notes_item.value, notes_item.pos ), True )         
-        #If we are looping HARM3 we assume we dont have any phrase marker, we take HARM2 markers as baaseline
-        # Actually, we should check if these markers exist first before assuming things.
+                debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ notes_item.value ], format_location( notes_item.pos ),notes_item.value, notes_item.pos ), True )
+        # Use HARM2 phrase markers for HARM3 to match in-game results.
         if( part_name == "HARM3" ):
-            if len(phrase_end) == 0:
-                phrase_start = global_harm2_phase_start
-                phrase_end = global_harm2_phase_end
+            phrase_start = global_harm2_phase_start
+            phrase_end = global_harm2_phase_end
         #
         reserved_words = ['[play]','[mellow]','[intense]','[idle]','[idle_intense]','[idle_realtime]'\
             ,'[tambourine_start]','[tambourine_end]','[cowbell_start]','[cowbell_end]','[clap_start]','[clap_end]']
@@ -1207,7 +1205,6 @@ def handle_vocals(content, part_name ):
         warning_characters_error = ['period/dot']
         special_characters = [',','�','’','"']
         special_characters_error = ['comma','smart apostrophe','smart apostrophe','quotes']
-        remove_words = string.maketrans("#^","  ")
         last_note = 0
         #For each phrase marker we find the lyrics
         for index, item in enumerate(phrase_start):
@@ -1222,18 +1219,27 @@ def handle_vocals(content, part_name ):
                         debug_extra("Here {} {}".format(last_note, item), True)                    
                     
                     debug_extra("Syllable {} found at {}".format(lyric_positions[ od_midi_note.pos ], od_midi_note.pos), True)
-                    debug_extra("Last characeter is {}".format(lyric_positions[ od_midi_note.pos ][-1:] ), True)
+                    debug_extra("Last character is {}".format(lyric_positions[ od_midi_note.pos ][-1:] ), True)
                     if lyric_positions[ od_midi_note.pos ] != '+' and lyric_positions[ od_midi_note.pos ] != "+$":
 
+                        is_spoken = False
                         syllable = lyric_positions[ od_midi_note.pos ] + ' '
+                        debug_extra(syllable, True)
+
+                        # Check if any spoken characters exist, so we can make them italic later.
+                        if syllable.endswith("^ ") or syllable.endswith("# "):
+                            syllable = syllable.replace("^ ", " ")
+                            syllable = syllable.replace("# ", " ")
+                            is_spoken = True
 
                         syllable = syllable.replace("$", "")
                         syllable = syllable.replace("- ", "")
                         syllable = syllable.replace("= ", "-")
-                        
+
                         #At this stage the output is the same as the syllable
                         output_syllable = syllable
-                        
+                        debug_extra(output_syllable, True)
+
                         #Check syllable for special characters
                         for index_char, special_char in enumerate(special_characters):
                             if( syllable.find( special_char )!=-1 ):
@@ -1248,14 +1254,18 @@ def handle_vocals(content, part_name ):
                                 has_error = True
                         #Is the syllable upper case? This is not valid!    
                         if( full_phrase != '' and syllable[0].isupper() and "I" not in syllable and "I'm" not in syllable and "I'll" not in syllable and "I'd" not in syllable and "God" not in syllable ):
-                            debug("ERROR: syllable \"{}\" should not be uppercase at {} - [{}, {}]".format(syllable.translate( remove_words ).strip(),    format_location( od_midi_note.pos ),    item,    od_midi_note.pos ), True)                        
-                            output_syllable = '<span class="alert-info" title="Should not be uppercase"><strong>{}</strong></span> '.format( syllable.translate( remove_words ).strip() )
+                            debug("ERROR: syllable \"{}\" should not be uppercase at {} - [{}, {}]".format(syllable,    format_location( od_midi_note.pos ),    item,    od_midi_note.pos ), True)                        
+                            output_syllable = '<span class="alert-info" title="Should not be uppercase"><strong>{}</strong></span> '.format( syllable )
                             has_error = True
                         elif( ( full_phrase == '' or check_caps == True ) and not syllable[0].isupper() ):
                             check_caps = False
-                            debug("ERROR: syllable \"{}\" should be uppercase at {} - [{}, {}]".format(syllable.translate( remove_words ).strip(),    format_location( od_midi_note.pos ),    item,    od_midi_note.pos ), True)                            
-                            output_syllable = '<span class="alert-error" title="Should be uppercase"><strong>{}</strong></span> '.format( syllable.translate( remove_words ).strip() )
+                            debug("ERROR: syllable \"{}\" should be uppercase at {} - [{}, {}]".format(syllable,    format_location( od_midi_note.pos ),    item,    od_midi_note.pos ), True)                            
+                            output_syllable = '<span class="alert-error" title="Should be uppercase"><strong>{}</strong></span> '.format( syllable )
                             has_error = True
+
+                        if is_spoken:
+                            output_syllable = "<i>{}</i>".format(syllable)
+
                         full_phrase += syllable + ''
                         output_full_phrase += output_syllable + ''
                     
@@ -1264,8 +1274,8 @@ def handle_vocals(content, part_name ):
                         check_caps = True
                     last_note = item
             #Print full phrase
-            debug("INFO: Phrase #{} from {} to {}: {}".format(index+1, format_location( item ),format_location( phrase_end[index] ), re.sub(r'\s+', ' ', full_phrase.translate( remove_words )) ), True)
-            localTmpl[ output_part_var + "_phrases"] += '<div class="row-fluid"><strong class="">{}</strong>: {} </div>'.format( format_location( item ), output_full_phrase.translate( remove_words ) )
+            debug("INFO: Phrase #{} from {} to {}: {}".format(index+1, format_location( item ),format_location( phrase_end[index] ), re.sub(r'\s+', ' ', full_phrase) ), True)
+            localTmpl[ output_part_var + "_phrases"] += '<div class="row-fluid"><strong class="">{}</strong>: {} </div>'.format( format_location( item ), output_full_phrase )
         debug( "=================== ENDS " + part_name + ": Phrase markers and lyrics ===================", True )
         
         #Get all ODs
@@ -1976,7 +1986,6 @@ with open(OUTPUT_FILE, 'w') as f:
             if trackname.endswith("'"):
                 trackname = trackname[:-1]
             trackname = base64.b64decode(trackname)[2:]
-
 
         for i in part:
             partname = i
