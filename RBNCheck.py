@@ -133,6 +133,9 @@ dTmpl = {}
 global_harm2_phase_start = []
 global_harm2_phase_end = []
 
+note_regex = "(?:^<([X,x]\\s[a-f,0-9]+\\s[a-f,0-9]+)|^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+).?.?.?)$"
+
+
 var_sets = [
                         'bass_total_ods',
                         'guitar_total_ods',
@@ -314,7 +317,7 @@ def handle_drums( content, part_name ):
         #all_e_notes = re.findall("^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+)$", content, re.MULTILINE)
         #all_x_notes = re.findall("^<(X\s[a-f,0-9]+\s[a-f,0-9]+)$", content, re.I | re.MULTILINE)
         #all_notes = all_x_notes + all_e_notes
-        all_notes = re.findall("(?:^<([X,x]\\s[a-f,0-9]+\\s[a-f,0-9]+)|^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+)$)", content, re.MULTILINE)
+        all_notes = re.findall(note_regex, content, re.MULTILINE)
         
         noteloc = 0;        
         for note in all_notes:
@@ -662,7 +665,7 @@ def handle_guitar(content, part_name ):
         #all_e_notes = re.findall("^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+)$", content, re.MULTILINE)
         #all_x_notes = re.findall("^<(X\s[a-f,0-9]+\s[a-f,0-9]+)$", content, re.I | re.MULTILINE)
         #all_notes = all_x_notes + all_e_notes
-        all_notes = re.findall("(?:^<([X,x]\\s[a-f,0-9]+\\s[a-f,0-9]+)|^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+)$)", content, re.MULTILINE)
+        all_notes = re.findall(note_regex, content, re.MULTILINE)
         noteloc = 0;
         
         for note in all_notes:
@@ -1369,7 +1372,7 @@ def handle_keys(content, part_name ):
             60 : "Easy Green"
         }
         #debug (content, True)
-        all_notes = re.findall("(?:^<([X,x]\\s[a-f,0-9]+\\s[a-f,0-9]+)|^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+)$)", content, re.MULTILINE)
+        all_notes = re.findall(note_regex, content, re.MULTILINE)
         noteloc = 0;
         
         for note in all_notes:
@@ -1665,7 +1668,7 @@ def handle_pro_keys(content, part_name ):
             0:    "Range C2-C3"
         }
         #debug (content, True)
-        all_notes = re.findall("(?:^<([X,x]\\s[a-f,0-9]+\\s[a-f,0-9]+)|^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+)$)", content, re.MULTILINE)
+        all_notes = re.findall(note_regex, content, re.MULTILINE)
         noteloc = 0;
         c = Counter()
         for note in all_notes:
