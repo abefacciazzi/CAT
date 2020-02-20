@@ -133,7 +133,7 @@ dTmpl = {}
 global_harm2_phase_start = []
 global_harm2_phase_end = []
 
-note_regex = "(?:^<([X,x]\\s[a-f,0-9]+\\s[a-f,0-9]+)|^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+).?.?.?)$"
+note_regex = "(?:^<([X,x]\s[a-f,0-9]+\s[a-f,0-9]+.*$)|^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+).*)$"
 
 
 var_sets = [
@@ -2081,10 +2081,10 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
                         <li><a href="#tab_rhythm" data-toggle="tab">Rhythm ''' + dTmpl['rhythm_error_icon'] + '''</a></li>
                         <li><a href="#tab_prokeys" data-toggle="tab">Pro Keys ''' + dTmpl['prokeys_error_icon'] + '''</a></li>
                         <li><a href="#tab_keys" data-toggle="tab">Keys ''' + dTmpl['keys_error_icon'] + '''</a></li>
-                        <li><a href="#tab_vocals" data-toggle="tab">PART VOCALS ''' + dTmpl['vocals_error_icon'] + '''</a></li>
-                        <li><a href="#tab_harm1" data-toggle="tab">HARM1 ''' + dTmpl['harm1_error_icon'] + '''</a></li>
-                        <li><a href="#tab_harm2" data-toggle="tab">HARM2 ''' + dTmpl['harm2_error_icon'] + '''</a></li>
-                        <li><a href="#tab_harm3" data-toggle="tab">HARM3 ''' + dTmpl['harm3_error_icon'] + '''</a></li>
+                        <li><a href="#tab_vocals" data-toggle="tab">Vocals ''' + dTmpl['vocals_error_icon'] + '''</a></li>
+                        <li><a href="#tab_harm1" data-toggle="tab">H1 ''' + dTmpl['harm1_error_icon'] + '''</a></li>
+                        <li><a href="#tab_harm2" data-toggle="tab">H2 ''' + dTmpl['harm2_error_icon'] + '''</a></li>
+                        <li><a href="#tab_harm3" data-toggle="tab">H3 ''' + dTmpl['harm3_error_icon'] + '''</a></li>
                         <li><a href="#tab_events" data-toggle="tab">Events ''' + dTmpl['events_error_icon'] + '''</a></li>
                         <!--<li><a href="#tab_venue" data-toggle="tab">Venue ''' + dTmpl['venue_error_icon'] + '''</a></li>-->
                         <li><a href="#tab_od" data-toggle="tab">OD Graph</a></li>
