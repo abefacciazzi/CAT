@@ -2082,9 +2082,9 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
                         <li><a href="#tab_prokeys" data-toggle="tab">Pro Keys ''' + dTmpl['prokeys_error_icon'] + '''</a></li>
                         <li><a href="#tab_keys" data-toggle="tab">Keys ''' + dTmpl['keys_error_icon'] + '''</a></li>
                         <li><a href="#tab_vocals" data-toggle="tab">Vocals ''' + dTmpl['vocals_error_icon'] + '''</a></li>
-                        <li><a href="#tab_harm1" data-toggle="tab">H1 ''' + dTmpl['harm1_error_icon'] + '''</a></li>
-                        <li><a href="#tab_harm2" data-toggle="tab">H2 ''' + dTmpl['harm2_error_icon'] + '''</a></li>
-                        <li><a href="#tab_harm3" data-toggle="tab">H3 ''' + dTmpl['harm3_error_icon'] + '''</a></li>
+                        <li><a href="#tab_harm1" data-toggle="tab">Harmony 1 ''' + dTmpl['harm1_error_icon'] + '''</a></li>
+                        <li><a href="#tab_harm2" data-toggle="tab"> 2 ''' + dTmpl['harm2_error_icon'] + '''</a></li>
+                        <li><a href="#tab_harm3" data-toggle="tab"> 3 ''' + dTmpl['harm3_error_icon'] + '''</a></li>
                         <li><a href="#tab_events" data-toggle="tab">Events ''' + dTmpl['events_error_icon'] + '''</a></li>
                         <!--<li><a href="#tab_venue" data-toggle="tab">Venue ''' + dTmpl['venue_error_icon'] + '''</a></li>-->
                         <li><a href="#tab_od" data-toggle="tab">OD Graph</a></li>
@@ -2465,21 +2465,22 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
                             '''
     for instrument in ['guitar','rhythm','bass','drums','keys']:
         full_ods = dTmpl[ instrument + '_pos_od']
-        if( len(full_ods)<1 ):
-            full_ods = []
-        var_html += ''' <tr > 
-                                            <td>'''+ instrument.title() +'''</td>
-                                '''        
-        for n in range( 1, int( dTmpl['last_event'] ) ):
-            if n in full_ods:            
-                var_html += '''
-                                            <td width="10px" style="background-color:#D4A017" id="''' + "{}_{}".format( instrument, n ) + '''"><a href="#" title="''' + "Aprox. Position {}".format(n) + '''" alt="''' + "Aprox. Position {}".format(n) + '''">...</a></td>
-                                    '''
-            else:
-                var_html += '''
-                                            <td width="10px" style="" id="''' + "{}_{}".format( instrument, n ) + '''"></td>
-                                    '''
-        var_html += ''' </tr> '''
+        if len(full_ods) > 0:
+            if( len(full_ods)<1 ):
+                full_ods = []
+            var_html += ''' <tr > 
+                                                <td>'''+ instrument.title() +'''</td>
+                                    '''        
+            for n in range( 1, int( dTmpl['last_event'] ) ):
+                if n in full_ods:            
+                    var_html += '''
+                                                <td width="10px" style="background-color:#D4A017" id="''' + "{}_{}".format( instrument, n ) + '''"><a href="#" title="''' + "Aprox. Position {}".format(n) + '''" alt="''' + "Aprox. Position {}".format(n) + '''">...</a></td>
+                                        '''
+                else:
+                    var_html += '''
+                                                <td width="10px" style="" id="''' + "{}_{}".format( instrument, n ) + '''"></td>
+                                        '''
+            var_html += ''' </tr> '''
     var_html += ''' </table> '''
     var_html += '''                    
                             </div>
