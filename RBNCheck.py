@@ -1896,9 +1896,12 @@ def handle_events(content, part_name ):
         for index, item in enumerate( sect_start ):
             debug_extra( "Practice section {} goes from {} to {} at {} - [{},{}]".format( item, format_location( sect_start_pos[ index ] ), sect_ends[ index ], format_location( sect_ends_pos[ index ] ), sect_start_pos[ index ], sect_ends_pos[ index ] ), True )
         
-        localTmpl['first_event'] = format_location( sect_start_pos[0] )
+        localTmpl['first_event'] = 0
         localTmpl['last_event'] = 0
-        localTmpl['last_event'] = int ( (sect_ends_pos.pop() / 1920) + 1 ) 
+
+        if len(sect_start_pos) > 0:
+            localTmpl['first_event'] = format_location( sect_start_pos[0] )
+            localTmpl['last_event'] = int ( (sect_ends_pos.pop() / 1920) + 1 ) 
         
         return localTmpl
 
