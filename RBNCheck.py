@@ -2031,6 +2031,7 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
     <link href="css/bootstrap.min.css" rel="stylesheet">
     <style type="text/css">
         body {
+            color: #333;
             padding-top: 60px;
             padding-bottom: 40px;
         }
@@ -2043,52 +2044,53 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
 </HEAD>
 <body>
     <div class="container-fluid">
-    
-        <div class="row-fluid">
-            <div class="span2">
-                <h3>At a glance</h3>
-                <div class="well sidebar-nav">
-                    <ul class="nav nav-list">
-                        <li class="nav-header">Drums</li>
-                        <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['drums_total_ods'] ) + '''</a></li>
-                        <li class=""><a href="#">Fill Count: ''' + "{}".format( dTmpl['drums_total_fills'] ) + '''</a></li>
-                        <li class=""><a href="#">Kicks on X: ''' + "{}".format( dTmpl['drums_total_kicks_x'] ) + '''</a></li>
-                        <li class=""><a href="#">Kicks on H: ''' + "{}".format( dTmpl['drums_total_kicks_h'] ) + '''</a></li>
-                        <li class=""><a href="#">Kicks on M: ''' + "{}".format( dTmpl['drums_total_kicks_m'] ) + '''</a></li>
-                        <li class=""><a href="#">Kicks on E: ''' + "{}".format( dTmpl['drums_total_kicks_e'] ) + '''</a></li>
-                        <li class="nav-header">Bass</li>
-                        <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['bass_total_ods'] ) + '''</a></li>
-                        <li class="nav-header">Guitar</li>
-                        <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['guitar_total_ods'] ) + '''</a></li>
-                        <li class="nav-header">Rhythm</li>
-                        <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['rhythm_total_ods'] ) + '''</a></li>
-                        <li class="nav-header">Keys</li>
-                        <li class=""><a href="#">OD Count:    ''' + "{}".format( dTmpl['keys_total_ods'] ) + '''</a></li>
-                        <li class="nav-header">Pro Keys</li>
-                        <li class=""><a href="#">OD Count:    ''' + "{}".format( dTmpl['prokeys_total_ods'] ) + '''</a></li>
-                        <li class="nav-header">Vocals</li>
-                        <li class=""><a href="#">Vocals OD Count: ''' + str( len( dTmpl['vocals_od_start'] ) ) + '''</a></li>
-                        <li class=""><a href="#">Harmony 1 OD Count: ''' + str( len( dTmpl['harm1_od_start'] ) ) + '''</a></li>
-                    </ul>
-                </div><!--/.well -->
-            </div><!--/span-->
+        <ul class="nav nav-tabs">
+            <li class="active"><a href="#tab_drums" data-toggle="tab">Drums ''' + dTmpl['drums_error_icon'] + '''</a></li>
+            <li><a href="#tab_bass" data-toggle="tab">Bass ''' + dTmpl['bass_error_icon'] + '''</a></li>
+            <li><a href="#tab_guitar" data-toggle="tab">Guitar ''' + dTmpl['guitar_error_icon'] + '''</a></li>
+            <li><a href="#tab_rhythm" data-toggle="tab">Rhythm ''' + dTmpl['rhythm_error_icon'] + '''</a></li>
+            <li><a href="#tab_prokeys" data-toggle="tab">Pro Keys ''' + dTmpl['prokeys_error_icon'] + '''</a></li>
+            <li><a href="#tab_keys" data-toggle="tab">Keys ''' + dTmpl['keys_error_icon'] + '''</a></li>
+            <li><a href="#tab_vocals" data-toggle="tab">Vocals ''' + dTmpl['vocals_error_icon'] + '''</a></li>
+            <li><a href="#tab_harm1" data-toggle="tab">Harmony 1 ''' + dTmpl['harm1_error_icon'] + '''</a></li>
+            <li><a href="#tab_harm2" data-toggle="tab"> 2 ''' + dTmpl['harm2_error_icon'] + '''</a></li>
+            <li><a href="#tab_harm3" data-toggle="tab"> 3 ''' + dTmpl['harm3_error_icon'] + '''</a></li>
+            <li><a href="#tab_events" data-toggle="tab">Events ''' + dTmpl['events_error_icon'] + '''</a></li>
+            <!--<li><a href="#tab_venue" data-toggle="tab">Venue ''' + dTmpl['venue_error_icon'] + '''</a></li>-->
+            <li><a href="#tab_od" data-toggle="tab">OD Graph</a></li>
+        </ul>
+    </div>
+    <div class="container-fluid">
+        <div class="row-fluid" style="background-color: white;">
             <div class="span9">
-                <div class="tabbable">
-                    <ul class="nav nav-tabs">
-                        <li class="active"><a href="#tab_drums" data-toggle="tab">Drums ''' + dTmpl['drums_error_icon'] + '''</a></li>
-                        <li><a href="#tab_bass" data-toggle="tab">Bass ''' + dTmpl['bass_error_icon'] + '''</a></li>
-                        <li><a href="#tab_guitar" data-toggle="tab">Guitar ''' + dTmpl['guitar_error_icon'] + '''</a></li>
-                        <li><a href="#tab_rhythm" data-toggle="tab">Rhythm ''' + dTmpl['rhythm_error_icon'] + '''</a></li>
-                        <li><a href="#tab_prokeys" data-toggle="tab">Pro Keys ''' + dTmpl['prokeys_error_icon'] + '''</a></li>
-                        <li><a href="#tab_keys" data-toggle="tab">Keys ''' + dTmpl['keys_error_icon'] + '''</a></li>
-                        <li><a href="#tab_vocals" data-toggle="tab">Vocals ''' + dTmpl['vocals_error_icon'] + '''</a></li>
-                        <li><a href="#tab_harm1" data-toggle="tab">Harmony 1 ''' + dTmpl['harm1_error_icon'] + '''</a></li>
-                        <li><a href="#tab_harm2" data-toggle="tab"> 2 ''' + dTmpl['harm2_error_icon'] + '''</a></li>
-                        <li><a href="#tab_harm3" data-toggle="tab"> 3 ''' + dTmpl['harm3_error_icon'] + '''</a></li>
-                        <li><a href="#tab_events" data-toggle="tab">Events ''' + dTmpl['events_error_icon'] + '''</a></li>
-                        <!--<li><a href="#tab_venue" data-toggle="tab">Venue ''' + dTmpl['venue_error_icon'] + '''</a></li>-->
-                        <li><a href="#tab_od" data-toggle="tab">OD Graph</a></li>
-                    </ul>
+                <div class="tabbable" style="margin-bottom: 2%; margin-top: 1%">
+                    <div class="span2">
+                        <h3>At a glance</h3>
+                        <div class="well sidebar-nav">
+                            <ul class="nav nav-list">
+                                <li class="nav-header">Drums</li>
+                                <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['drums_total_ods'] ) + '''</a></li>
+                                <li class=""><a href="#">Fill Count: ''' + "{}".format( dTmpl['drums_total_fills'] ) + '''</a></li>
+                                <li class=""><a href="#">Kicks on X: ''' + "{}".format( dTmpl['drums_total_kicks_x'] ) + '''</a></li>
+                                <li class=""><a href="#">Kicks on H: ''' + "{}".format( dTmpl['drums_total_kicks_h'] ) + '''</a></li>
+                                <li class=""><a href="#">Kicks on M: ''' + "{}".format( dTmpl['drums_total_kicks_m'] ) + '''</a></li>
+                                <li class=""><a href="#">Kicks on E: ''' + "{}".format( dTmpl['drums_total_kicks_e'] ) + '''</a></li>
+                                <li class="nav-header">Bass</li>
+                                <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['bass_total_ods'] ) + '''</a></li>
+                                <li class="nav-header">Guitar</li>
+                                <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['guitar_total_ods'] ) + '''</a></li>
+                                <li class="nav-header">Rhythm</li>
+                                <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['rhythm_total_ods'] ) + '''</a></li>
+                                <li class="nav-header">Keys</li>
+                                <li class=""><a href="#">OD Count:    ''' + "{}".format( dTmpl['keys_total_ods'] ) + '''</a></li>
+                                <li class="nav-header">Pro Keys</li>
+                                <li class=""><a href="#">OD Count:    ''' + "{}".format( dTmpl['prokeys_total_ods'] ) + '''</a></li>
+                                <li class="nav-header">Vocals</li>
+                                <li class=""><a href="#">Vocals OD Count: ''' + str( len( dTmpl['vocals_od_start'] ) ) + '''</a></li>
+                                <li class=""><a href="#">Harmony 1 OD Count: ''' + str( len( dTmpl['harm1_od_start'] ) ) + '''</a></li>
+                            </ul>
+                        </div><!--/.well -->
+                    </div><!--/span-->
                     <div class="tab-content">
                         <div class="tab-pane active" id="tab_drums">
                             <div class="span12">'''
