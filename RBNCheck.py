@@ -233,8 +233,7 @@ for elem in var_sets:
 # (end) Template Dictionary
 
 #These variables control if we have a certain instrument or track
-has_drums, has_bass, has_guitar, has_rhythm, has_vocals, has_harm1, has_harm2, has_harm3, has_keys = (False, False, False, False, False, False, False, False, False)
-granDICT = {}
+has_drums, has_bass, has_guitar, has_rhythm, has_vocals, has_harm1, has_harm2, has_harm3, has_keys, has_prokeys = (False, False, False, False, False, False, False, False, False, False)
 
 # (start) Funciones de manejo de instrumentos
 def handle_drums( content, part_name ):
@@ -248,7 +247,6 @@ def handle_drums( content, part_name ):
         localTmpl['drums_error_icon'] = ''
         l_gems = []
         r_gems = []
-        has_drums = True
         has_error = False
         num_to_text = {
             127 : "Cymbal Sweell", 
@@ -589,6 +587,11 @@ def handle_drums( content, part_name ):
         localTmpl["drums_total_fills"] = total_fills
         localTmpl["drums_total_ods"] = total_ods
         localTmpl["drums_pos_od"] = drums_pos_od
+
+        if len(all_notes) > 8:
+            global has_drums
+            has_drums = True
+
         if( has_error ):
             localTmpl['drums_error_icon'] = '<i class="icon-exclamation-sign"></i>'
         
@@ -600,13 +603,10 @@ def handle_guitar(content, part_name ):
         localTmpl = {}
         if( part_name == "PART GUITAR" ):
             guitar_pos_od = []
-            has_guitar = True
         if( part_name == "PART RHYTHM" ):
             rhythm_pos_od = []
-            has_rhythm = True
         elif( part_name == "PART BASS" ):
             bass_pos_od = []
-            has_bass = True
         output_part_var = part_name.lower().replace( 'part ','' )
         has_error = False
         
@@ -1024,10 +1024,19 @@ def handle_guitar(content, part_name ):
         localTmpl[ output_part_var + "_total_ods"] = total_ods
         if( part_name == "PART GUITAR" ):
             localTmpl[ "guitar_pos_od"] = guitar_pos_od
+            if len(all_notes) > 4:
+                global has_guitar
+                has_guitar = True
         elif( part_name == "PART BASS" ):
             localTmpl[ "bass_pos_od"] = bass_pos_od
+            if len(all_notes) > 4:
+                global has_bass
+                has_bass = True
         elif( part_name == "PART RHYTHM" ):
             localTmpl[ "rhythm_pos_od"] = rhythm_pos_od
+            if len(all_notes) > 4:
+                global has_rhythm
+                has_rhythm = True
             
         if( has_error ):
             localTmpl[ output_part_var + '_error_icon'] = '<i class="icon-exclamation-sign"></i>'
@@ -1039,16 +1048,12 @@ def handle_vocals(content, part_name ):
         r_gems = []
         p_gems = []
         localTmpl = {}
+
         if( part_name == "PART VOCALS" ):
             debug_extra("Found track - PART VOCALS", True)
-            has_vocals = True
         elif( part_name == "HARM1" ):
             debug_extra("Found track - HARM1", True)
-            has_harm1 = True
-        elif( part_name == "HARM2" ):
-            has_harm2 = True
-        elif( part_name == "HARM3" ):
-            has_harm3 = True
+
         has_error = False
         
         output_part_var = part_name.lower().replace( 'part ','' )        
@@ -1313,7 +1318,20 @@ def handle_vocals(content, part_name ):
                 has_error = True
             
         debug( "=================== ENDS " + part_name + ": Notes without space ===================", True )
-        
+        if len(all_notes) > 4:
+            if( part_name == "PART VOCALS" ):
+                global has_vocals
+                has_vocals = True
+            elif( part_name == "HARM1" ):
+                global has_harm1
+                has_harm1 = True
+            elif( part_name == "HARM2" ):
+                global has_harm2
+                has_harm2 = True
+            elif( part_name == "HARM3" ):
+                global has_harm3
+                has_harm3 = True
+
         #Save all variable sin DICT for output
         localTmpl[ output_part_var + "_od_start"] = od_start
         localTmpl[ output_part_var + "_od_end"] = od_end
@@ -1326,7 +1344,6 @@ def handle_keys(content, part_name ):
         l_gems = []
         r_gems = []
         localTmpl = {}
-        has_keys = True
         has_error = False
         localTmpl["keys_error_icon"] = ''        
         localTmpl[ "keys_general_issues"] = '';
@@ -1584,6 +1601,11 @@ def handle_keys(content, part_name ):
         
         localTmpl[ "keys_total_ods" ] = total_ods
         localTmpl[ "keys_pos_od" ] = keys_pos_od
+
+        if len(all_notes) > 4:
+            global has_keys
+            has_keys = True
+
         if( has_error ):
             localTmpl[ 'keys_error_icon'] = '<i class="icon-exclamation-sign"></i>'
         
@@ -1766,6 +1788,10 @@ def handle_pro_keys(content, part_name ):
         debug( "Total ODs: {}".format( total_ods ), True )
         debug( "=================== ENDS TOTAL PRO KEYS: Some numbers and stats ===================", True )  
         
+        if len(all_notes) > 4:
+            global has_prokeys
+            has_prokeys = True
+
         if part_name == "PART REAL_KEYS_X":
             localTmpl[ "prokeys_total_ods" ] = total_ods
 
@@ -2044,20 +2070,32 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
 </HEAD>
 <body>
     <div class="container-fluid">
-        <ul class="nav nav-tabs">
-            <li class="active"><a href="#tab_drums" data-toggle="tab">Drums ''' + dTmpl['drums_error_icon'] + '''</a></li>
-            <li><a href="#tab_bass" data-toggle="tab">Bass ''' + dTmpl['bass_error_icon'] + '''</a></li>
-            <li><a href="#tab_guitar" data-toggle="tab">Guitar ''' + dTmpl['guitar_error_icon'] + '''</a></li>
-            <li><a href="#tab_rhythm" data-toggle="tab">Rhythm ''' + dTmpl['rhythm_error_icon'] + '''</a></li>
-            <li><a href="#tab_prokeys" data-toggle="tab">Pro Keys ''' + dTmpl['prokeys_error_icon'] + '''</a></li>
-            <li><a href="#tab_keys" data-toggle="tab">Keys ''' + dTmpl['keys_error_icon'] + '''</a></li>
-            <li><a href="#tab_vocals" data-toggle="tab">Vocals ''' + dTmpl['vocals_error_icon'] + '''</a></li>
-            <li><a href="#tab_harm1" data-toggle="tab">Harmony 1 ''' + dTmpl['harm1_error_icon'] + '''</a></li>
-            <li><a href="#tab_harm2" data-toggle="tab"> 2 ''' + dTmpl['harm2_error_icon'] + '''</a></li>
-            <li><a href="#tab_harm3" data-toggle="tab"> 3 ''' + dTmpl['harm3_error_icon'] + '''</a></li>
-            <li><a href="#tab_events" data-toggle="tab">Events ''' + dTmpl['events_error_icon'] + '''</a></li>
-            <!--<li><a href="#tab_venue" data-toggle="tab">Venue ''' + dTmpl['venue_error_icon'] + '''</a></li>-->
-            <li><a href="#tab_od" data-toggle="tab">OD Graph</a></li>
+        <ul class="nav nav-tabs">'''
+    
+
+    if has_drums:
+        var_html += '''<li class="active"><a href="#tab_drums" data-toggle="tab">Drums ''' + dTmpl['drums_error_icon'] + '''</a></li>'''
+    if has_bass:
+        var_html += '''<li><a href="#tab_bass" data-toggle="tab">Bass ''' + dTmpl['bass_error_icon'] + '''</a></li>'''
+    if has_guitar:
+        var_html += '''<li><a href="#tab_guitar" data-toggle="tab">Guitar ''' + dTmpl['guitar_error_icon'] + '''</a></li>'''
+    if has_rhythm:
+        var_html += '''<li><a href="#tab_rhythm" data-toggle="tab">Rhythm ''' + dTmpl['rhythm_error_icon'] + '''</a></li>'''
+    if has_prokeys:
+        var_html += '''<li><a href="#tab_prokeys" data-toggle="tab">Pro Keys ''' + dTmpl['prokeys_error_icon'] + '''</a></li>'''
+    if has_keys:
+        var_html += '''<li><a href="#tab_keys" data-toggle="tab">Keys ''' + dTmpl['keys_error_icon'] + '''</a></li>'''
+    if has_vocals:
+        var_html += '''<li><a href="#tab_vocals" data-toggle="tab">Vocals ''' + dTmpl['vocals_error_icon'] + '''</a></li>'''
+    if has_harm1:
+        var_html += '''<li><a href="#tab_harm1" data-toggle="tab">Harmony 1 ''' + dTmpl['harm1_error_icon'] + '''</a></li>'''
+    if has_harm2:
+        var_html += '''<li><a href="#tab_harm2" data-toggle="tab"> 2 ''' + dTmpl['harm2_error_icon'] + '''</a></li>'''
+    if has_harm3:
+        var_html += '''<li><a href="#tab_harm3" data-toggle="tab"> 3 ''' + dTmpl['harm3_error_icon'] + '''</a></li>'''
+    var_html += '''<li><a href="#tab_events" data-toggle="tab">Events ''' + dTmpl['events_error_icon'] + '''</a></li>'''
+    var_html += '''<!--<li><a href="#tab_venue" data-toggle="tab">Venue ''' + dTmpl['venue_error_icon'] + '''</a></li>-->'''
+    var_html += '''<li><a href="#tab_od" data-toggle="tab">OD Graph</a></li>
         </ul>
     </div>
     <div class="container-fluid">
@@ -2068,6 +2106,7 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
                         <h3>At a glance</h3>
                         <div class="well sidebar-nav">
                             <ul class="nav nav-list">
+                                <section>
                                 <li class="nav-header">Drums</li>
                                 <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['drums_total_ods'] ) + '''</a></li>
                                 <li class=""><a href="#">Fill Count: ''' + "{}".format( dTmpl['drums_total_fills'] ) + '''</a></li>
@@ -2075,19 +2114,32 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
                                 <li class=""><a href="#">Kicks on H: ''' + "{}".format( dTmpl['drums_total_kicks_h'] ) + '''</a></li>
                                 <li class=""><a href="#">Kicks on M: ''' + "{}".format( dTmpl['drums_total_kicks_m'] ) + '''</a></li>
                                 <li class=""><a href="#">Kicks on E: ''' + "{}".format( dTmpl['drums_total_kicks_e'] ) + '''</a></li>
+                                </section>
+                                <section>
                                 <li class="nav-header">Bass</li>
                                 <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['bass_total_ods'] ) + '''</a></li>
+                                </section>
+                                <section>
                                 <li class="nav-header">Guitar</li>
                                 <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['guitar_total_ods'] ) + '''</a></li>
+                                </section>
+                                <section>
                                 <li class="nav-header">Rhythm</li>
                                 <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['rhythm_total_ods'] ) + '''</a></li>
+                                </section>
+                                <section>
                                 <li class="nav-header">Keys</li>
                                 <li class=""><a href="#">OD Count:    ''' + "{}".format( dTmpl['keys_total_ods'] ) + '''</a></li>
+                                </section>
+                                <section>
                                 <li class="nav-header">Pro Keys</li>
                                 <li class=""><a href="#">OD Count:    ''' + "{}".format( dTmpl['prokeys_total_ods'] ) + '''</a></li>
+                                </section>
+                                <section>
                                 <li class="nav-header">Vocals</li>
                                 <li class=""><a href="#">Vocals OD Count: ''' + str( len( dTmpl['vocals_od_start'] ) ) + '''</a></li>
                                 <li class=""><a href="#">Harmony 1 OD Count: ''' + str( len( dTmpl['harm1_od_start'] ) ) + '''</a></li>
+                                <section>
                             </ul>
                         </div><!--/.well -->
                     </div><!--/span-->
