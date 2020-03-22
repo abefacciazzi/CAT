@@ -1015,7 +1015,12 @@ def create_beattrack(halve, sel): #Call with halve to create an halved beat trac
                 array_beats.append(['e', ticks_start, 12, 64, correct_tqn/4, 96]) #Downbeat
             else:
                 array_beats.append(['e', ticks_start, 13, 64, correct_tqn/4, 96]) #Upbeat because of halving
-            ticks_start+=correct_tqn*moltiplicatore
+
+            if moltiplicatore == 2 and (ticks_start+correct_tqn*2) >= end_event:
+                ticks_start += correct_tqn * 1
+            else:
+                ticks_start+=correct_tqn*moltiplicatore
+
             if x+1 == len(measures_array):
                 start_check = end_event
             else:
@@ -1023,7 +1028,10 @@ def create_beattrack(halve, sel): #Call with halve to create an halved beat trac
             while ticks_start <= (start_check-correct_tqn):
                 if(ticks_start < end_event):
                     array_beats.append(['e', ticks_start, 13, 64, correct_tqn/4, 96]) #Upbeat
-                ticks_start+=correct_tqn*moltiplicatore
+                if moltiplicatore == 2 and (ticks_start+correct_tqn*2) >= end_event:
+                    ticks_start += correct_tqn * 1
+                else:
+                    ticks_start+=correct_tqn*moltiplicatore
         evenodd+=1
     write_midi(tracks_array["BEAT"], [array_beats, array_notes[1]], end_part, start_part)
 
