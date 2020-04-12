@@ -45,6 +45,7 @@ import remove_notes_prokeys
 import pgrootnotes
 import fhp
 import pg_copy_od_solo
+import remove_notes_pg
 
 import os
 import sys
@@ -232,6 +233,9 @@ if __name__ == '__main__':
 
     CopyODSoloFromBasicGtrBtn = Tkinter.Button(secPGB, text="Copy OD/Solo Markers from 5-lane", command= lambda: execute_this('pg_copy_od_solo'))
     CopyODSoloFromBasicGtrBtn.grid(row=1, column=3, rowspan=1, sticky="WE", padx=5, pady=2)
+
+    ReduceFromBasicGtrBtn = Tkinter.Button(secPGB, text="Reduce from 5-lane", command= lambda: execute_this("remove_notes_pg"))
+    ReduceFromBasicGtrBtn.grid(row=1, column=4, rowspan=1, sticky="WE", padx=5, pady=2)
 
     logo = Tkinter.Frame(root, bg="#000")
     logo.grid(row=7, column=0, columnspan=10, sticky='WE', \

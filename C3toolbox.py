@@ -80,9 +80,9 @@ array_instruments = {
         "Harmony 2" : "HARM2",
         "Harmony 3" : "HARM3",
         "Pro Guitar" : "PART REAL_GUITAR",
-        "Pro Guitar 22" : "PART REAL_GUITAR_22",
+        "Pro Guitar (22)" : "PART REAL_GUITAR_22",
         "Pro Bass" : "PART REAL_BASS",
-        "Pro Bass 22" : "PART REAL_BASS_22"
+        "Pro Bass (22)" : "PART REAL_BASS_22"
         }
 
 array_dropdownid = { "PART DRUMS" : 0,
@@ -1143,6 +1143,9 @@ def remove_notes_prokeys(what,level,instrument,how,selected):
     if len(array_validnotes) > 0:
         result = RPR_MB("Existing notes found in difficulty %s. Overwrite?" % instrumentname, "Reduce Pro Keys", 3)
 
+    if result == 2:
+        return
+
     # Copy the next highest pro keys difficulty into the current one as a base.
     if result == 6:
         array_validnotes = []
@@ -1218,6 +1221,160 @@ def remove_notes_prokeys(what,level,instrument,how,selected):
     write_midi(instrument, [array_notes, array_notesevents[1]], end_part, start_part)
 
     
+def remove_notes_pg(what,level,instrument,how,selected):
+    #PM("\n\n"+what+" - "+level+" - "+instrument+" - "+str(how)+" - "+str(same)+" - "+str(sparse)+" - "+str(bend)+" - "+str(selected)+"\n\n")
+    #w/h/q/e, whole, half, quarter, eighth grid
+    #x/h/m/e, expert, hard, medium, easy
+    #"PART DRUMS"/etc. (leave "" to apply to currently selected track
+    #0-30, ticks tolerance
+    #0/1, not keep or keep same consecutive notes even if they are 1 grid level faster than 'what'
+    #0/1, detect pitch bends
+    global maxlen
+    global divisions_array
+    global sustains_array
+
+    diffs_tmp = {"h": "Hard", "m": "Medium", "e": "Easy"}
+
+    if instrument.startswith("PART REAL_GUITAR"):
+        base_inst_name = "PART GUITAR"
+    elif instrument.startswith("PART REAL_BASS"):
+        base_inst_name = "PART BASS"
+    else:
+        return
+
+    instrument = tracks_array[instrument]
+
+    base_instrument = tracks_array[base_inst_name]
+    #PM("\n\ninstrument: "+str(instrument))
+    array_instrument_data = process_instrument(instrument)
+    base_array_instrument_data = process_instrument(base_instrument)
+    array_instrument_notes = array_instrument_data[1]
+    array_base_instrument_notes = base_array_instrument_data[1]
+    end_part = array_instrument_data[2]
+    start_part = array_instrument_data[3]
+    array_notesevents = create_notes_array(array_instrument_notes)
+    base_array_notesevents = create_notes_array(array_base_instrument_notes)
+    division = int(math.floor((correct_tqn*4)*divisions_array[what]))
+    array_notes = [] #The final array going in the array of notes and events
+    array_tempnotes = [] #The temp array containing the objects
+    instrumentname = ''
+    position = 0
+    sparse_position = 0
+    old_note = []
+    base_level = "notes_"+level
+    for instrument_name, instrument_id in tracks_array.iteritems():
+        if instrument_id == instrument:
+            instrumentname = instrument_name
+    if "REAL_KEYS" in instrumentname or "KEYS_ANIM" in instrumentname:
+        level = "notes"
+    else:
+        level = "notes_"+level
+
+    notes_dict = notesname_array[notesname_instruments_array[instrumentname]]
+    base_notes_dict = notesname_array[notesname_instruments_array[base_inst_name]]
+    array_validnotes = []
+    first_measure = 0
+    last_measure = 0
+    if(selected):
+        first_measure = mbt(int(selected_range(array_notesevents[0])[0]))[0]
+        last_measure = mbt(int(selected_range(array_notesevents[0])[1]))[0]
+        if first_measure == last_measure:
+            result = RPR_MB( "This command works from measure to measure, please selected notes from at least 2 different measures", "Invalid selection", 0)
+            return
+    #PM("lunghezza: ")
+    #PM(len(array_notesevents[0]))
+    #PM("first_measure: "+str(first_measure)+" - last_measure: "+str(last_measure)+"\n")
+    #We filter out all OD, BRE, markers, etc.
+    for x in range(0,len(array_notesevents[0])):
+        note = array_notesevents[0][x]
+        if note[2] not in notes_dict:
+            invalid_note_mb(note, instrumentname)
+            return
+        this_measure = mbt(int(note[1]))[0]
+        if notes_dict[note[2]][1] == level and (selected == 0 or (selected and (this_measure >= first_measure and this_measure <= last_measure))):
+            array_validnotes.append(note)
+        else:
+            array_notes.append(note)
+    array_validpositions = []
+
+    # If the array is not empty prompt to overwrite
+    result = 6 # yes
+    if len(array_validnotes) > 0:
+        result = RPR_MB("Existing notes found in difficulty %s. Overwrite?" % diffs_tmp[level[-1]], "Reduce Pro G/B", 3)
+
+    if result == 2:
+        return
+
+    # Copy higher difficulty into lower one.
+    if result == 6:
+        array_validnotes = []
+        level_array_tmp = ['x', 'h', 'm', 'e']
+        upper_level = level_array_tmp[level_array_tmp.index(level[-1]) - 1]
+        upper_level = "notes_"+upper_level
+        
+        for x in range(0, len(array_notesevents[0])):
+            note = array_notesevents[0][x]
+            if note[2] not in notes_dict:
+                invalid_note_mb(note, instrumentname)
+                return
+            this_measure = mbt(int(note[1]))[0]
+            if notes_dict[note[2]][1] == upper_level and (selected == 0 or (this_measure >= first_measure and this_measure <= last_measure)):
+                note_new = list(note)
+                note_new[2] = note_new[2]-24 # Lowering down one level
+
+                if note_new[2] in notes_dict:
+                    array_validnotes.append(note_new)
+
+    for x in range(0,len(base_array_notesevents[0])):
+        note = base_array_notesevents[0][x]
+        this_measure = mbt(int(note[1]))[0]
+        if base_notes_dict[note[2]][1] == base_level and (selected == 0 or (selected and (this_measure >= first_measure and this_measure <= last_measure))):
+            valid_position = str(mbt(int(note[1]))[0])+"."+str(mbt(int(note[1]))[1])+"."+str(mbt(int(note[1]))[2])
+            array_validpositions.append(valid_position) 
+    #PM("array_validpositions: ")
+    #PM(array_validpositions)
+    
+    array_rolls = []
+    #Loop through all notes to find all markers, 126 or 127
+    #For each marker found, add to markers_array location and location-length
+    for x in range(0,len(array_notes)):
+        note = array_notes[x]
+        #PM(note)
+        this_measure = mbt(int(note[1]))[0]
+
+        if note[2] == 126 and (selected == 0 or (selected and (this_measure >= first_measure and this_measure <= last_measure))):
+            array_rolls.append([note[1], note[1]+note[4]])
+        elif note[2] == 127 and (selected == 0 or (selected and (this_measure >= first_measure and this_measure <= last_measure))):
+            array_rolls.append([note[1], note[1]+note[4]])
+            
+    array_rollnotes = []
+    for x in range(0,len(array_validnotes)):
+        note = array_validnotes[x]
+        for j in range(0, len(array_rolls)):
+            start = array_rolls[j][0]
+            end = array_rolls[j][1]
+            if note[1] >= start and note[1] <= end:
+                if note[1] not in array_rollnotes:
+                    array_rollnotes.append(note[1])
+            
+    #We pass the valid notes array through a function that returns an object array with one element per note/chord
+    array_validobjects = note_objects(array_validnotes)
+    
+    #We go through the notes to remove the unneeded notes
+    for x in range(0,len(array_validobjects)):
+        note = array_validobjects[x]
+        old_position = position
+        position = str(mbt(note[1][0])[0])+"."+str(mbt(note[1][0])[1])+"."+str(mbt(note[1][0])[2])
+        #PM("position:")
+        #PM(position)
+        #PM("\n")
+        if position in array_validpositions:
+            array_tempnotes.append(note)
+
+    #Now let's create array_notes using array_tempnotes
+    array_notes = add_objects(array_notes, array_tempnotes)
+    write_midi(instrument, [array_notes, array_notesevents[1]], end_part, start_part)
+
 def remove_notes(what,level,instrument,how,same,sparse,bend,selected):
     #PM("\n\n"+what+" - "+level+" - "+instrument+" - "+str(how)+" - "+str(same)+" - "+str(sparse)+" - "+str(bend)+" - "+str(selected)+"\n\n")
     #w/h/q/e, whole, half, quarter, eighth grid
