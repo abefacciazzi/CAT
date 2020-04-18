@@ -176,7 +176,7 @@ maxlen = 1048576 #Used for the MIDI chunk editing and other functions
 end_event = 0 #If no end_event is set or it's not set at the right position, looping through notes after the end_event will bring up an error
 default_pause = correct_tqn*4*3 #The default space between notes that triggers an idle event
 chord_threshold = 0.07 #7% is the defauly threshold for chords reduction
-invalid_chars = ',:;".'
+invalid_chars = ',:;"'
 phrase_char = '@' #The character we use to tell the phrase markers script to start a new phrase
 debug = 1
 
