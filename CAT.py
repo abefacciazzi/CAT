@@ -46,6 +46,7 @@ import pgrootnotes
 import fhp
 import pg_copy_od_solo
 import remove_notes_pg
+import create_singalong
 
 import os
 import sys
@@ -202,6 +203,9 @@ if __name__ == '__main__':
     showlyricsBtn = Tkinter.Button(secVocals, text="Show lyrics", command= lambda: execute_this('show_lyrics'))
     showlyricsBtn.grid(row=4, column=2, rowspan=1, sticky="WE", padx=5, pady=2)
     
+    createSingBtn = Tkinter.Button(secVocals, text="Create sing-a-long notes", command= lambda: execute_this('create_singalong'))
+    createSingBtn.grid(row=4, column=3, rowspan=1, sticky="WE", padx=5, pady=2)
+
     secSupersets = Tkinter.LabelFrame(root, text=" Supersets: ")
     secSupersets.grid(row=4, columnspan=5, sticky='WE', \
                  padx=5, pady=5, ipadx=5, ipady=5)
