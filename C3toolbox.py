@@ -1143,9 +1143,6 @@ def remove_notes_prokeys(what,level,instrument,how,selected):
     if len(array_validnotes) > 0:
         result = RPR_MB("Existing notes found in difficulty %s. Overwrite?" % instrumentname, "Reduce Pro Keys", 3)
 
-    if result == 2:
-        return
-
     # Copy the next highest pro keys difficulty into the current one as a base.
     if result == 6:
         array_validnotes = []
@@ -1169,6 +1166,8 @@ def remove_notes_prokeys(what,level,instrument,how,selected):
                 array_validnotes.append(note)
             else:
                 array_notes.append(note)
+    else:
+        return
 
     for x in range(0,len(base_array_notesevents[0])):
         note = base_array_notesevents[0][x]
