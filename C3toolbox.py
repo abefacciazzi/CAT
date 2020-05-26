@@ -98,9 +98,9 @@ array_dropdownid = { "PART DRUMS" : 0,
                      "PART RHYTHM": 6,
                      "PART VOCALS": 7,
                      "PART REAL_GUITAR": 8,
-                     "PART REAL_GUITAR_22": 8,
-                     "PART REAL_BASS": 9,
-                     "PART REAL_BASS_22": 9
+                     "PART REAL_GUITAR_22": 9,
+                     "PART REAL_BASS": 10,
+                     "PART REAL_BASS_22": 11
                  }
 
 array_dropdownvocals = { "PART VOCALS" : 0,
