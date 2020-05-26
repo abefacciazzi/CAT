@@ -55,8 +55,6 @@ notesname_array = {
     86 : ["Hard Yellow", "notes_h", "Y"],
     85 : ["Hard Red", "notes_h", "R"],
     84 : ["Hard Green", "notes_h", "G"],
-    78 : ["Medium Force HOPO Off", "markers"],
-    77 : ["Medium Force HOPO On", "markers"],
     76 : ["Medium Orange", "notes_m", "O"],
     75 : ["Medium Blue", "notes_m", "B"],
     74 : ["Medium Yellow", "notes_m", "Y"],
