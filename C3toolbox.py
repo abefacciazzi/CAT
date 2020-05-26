@@ -3582,6 +3582,40 @@ def hide_lyrics(instrument, selected):
                 
     write_midi(instrument, [array_notesevents[0], array_notesevents[1]], end_part, start_part)
 
+def show_lyrics(instrument, selected):
+    global maxlen
+    instrument = tracks_array[instrument]
+    array_instrument_data = process_instrument(instrument)
+    array_instrument_notes = array_instrument_data[1]
+    end_part = array_instrument_data[2]
+    start_part = array_instrument_data[3]
+    array_notesevents = create_notes_array(array_instrument_notes)
+    array_events = array_notesevents[1]
+    
+    instrumentname = ''
+
+    array_validnotes = [] #The final array going in the array of notes and events
+    array_notes = []
+    
+    for instrument_name, instrument_id in tracks_array.iteritems():
+        if instrument_id == instrument:
+            instrumentname = instrument_name
+    leveltext = "notes"
+    notes_dict = notesname_array[notesname_instruments_array[instrumentname]]
+    
+    for x in range(0,len(array_notesevents[0])):
+        note = array_notesevents[0][x]
+        if note[2] in notes_dict and notes_dict[note[2]][1] == leveltext and (selected == 0 or (selected and note[0] == 'e')):
+            position = note[1]
+            found = 0
+            for j in range(0, len(array_events)):
+                event = array_events[j]
+                if event[1] == position and event[5] == 'ff05' and '$' in event[3]:
+                    event[3] = event[3].replace('$','')
+                    break
+                
+    write_midi(instrument, [array_notesevents[0], array_notesevents[1]], end_part, start_part)
+
 def create_phrase_markers(instrument, grid, mute):
     global maxlen
     instrument_text = instrument

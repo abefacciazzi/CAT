@@ -40,6 +40,7 @@ import create_keys_animations
 import edit_by_mbt
 import cleanup_notes
 import export_lyrics
+import show_lyrics
 import remove_notes_prokeys
 import pgrootnotes
 import fhp
@@ -196,6 +197,9 @@ if __name__ == '__main__':
 
     exportlyricsBtn = Tkinter.Button(secVocals, text="Export lyrics", command= lambda: execute_this('export_lyrics')) 
     exportlyricsBtn.grid(row=4, column=1, rowspan=1, sticky="WE", padx=5, pady=2)
+
+    showlyricsBtn = Tkinter.Button(secVocals, text="Show lyrics", command= lambda: execute_this('show_lyrics'))
+    showlyricsBtn.grid(row=4, column=2, rowspan=1, sticky="WE", padx=5, pady=2)
     
     secSupersets = Tkinter.LabelFrame(root, text=" Supersets: ")
     secSupersets.grid(row=4, columnspan=5, sticky='WE', \
