@@ -4492,6 +4492,106 @@ def compact_phrases():
     else:
         return 'no h1 or h2'
 
+# Concept of function:
+# - Check singing notes
+# - Create new sing-a-long note when new singing note appears
+# - If there is a space of 1 measure (non-inclusive) end the 
+#   sing-a-long note
+# - If it is the last singing note end the sing-a-long
+# - Repeat until all the singing notes in the track are checked
+def create_singalong(instrument):
+    if instrument not in array_dropdownvocals: 
+        return
+
+    # The length of empty space (non-inclusive) between notes
+    # to warrant making a new sing-a-long note.
+    threshhold = 4 * correct_tqn
+
+    if instrument == "HARM1":
+        singalong_pitch = 86 # drummer singalong
+        singalong_name = "Drummer Sing Along"
+    elif instrument == "HARM2":
+        singalong_pitch = 87 # guitarist singalong
+        singalong_name = "Guitarist Sing Along"
+    elif instrument == "HARM3":
+        singalong_pitch = 85 # bassist singalong
+        singalong_name = "Bassist Sing Along"
+
+    if instrument == '':
+        instrument = get_trackid()
+    else:
+        instrument = tracks_array[instrument]
+    #PM("\n\ninstrument: "+instrument)
+    array_instrument_data = process_instrument(instrument)
+    array_instrument_notes = array_instrument_data[1]
+    end_part = array_instrument_data[2]
+    start_part = array_instrument_data[3]
+    array_notesevents = create_notes_array(array_instrument_notes)
+
+    for instrument_name, instrument_id in tracks_array.iteritems():
+        if instrument_id == instrument:
+            instrumentname = instrument_name
+    notes_dict = notesname_array[notesname_instruments_array[instrumentname]]
+
+    array_validnotes = []
+
+    for x in range(0,len(array_notesevents[0])):
+        note = array_notesevents[0][x]
+        if note[2] not in notes_dict:
+            invalid_note_mb(note, instrument)
+            return
+        if notes_dict[note[2]][1] == "notes":
+            array_validnotes.append(note)
+
+    # The main part of the algorithm described above is here
+    # array_singalong has [start_position, end_position] elements
+    note_on = False
+    array_singalong = []
+    for i in range(0,len(array_validnotes)):
+        note = array_validnotes[i]
+
+        if note_on is False:
+            array_singalong.append([note[1]-correct_tqn])
+            note_on = True
+
+        if (i+1) == len(array_validnotes):
+            array_singalong[-1].append(note[1]+note[4])
+            note_on = False
+        elif array_validnotes[i+1][1] > (note[1] + note[4] + threshhold):
+            array_singalong[-1].append(note[1]+note[4]+correct_tqn)
+            note_on = False
+           
+    # The elements in array_singalong are converted to proper note objects.
+    array_newnotes = []
+    for note in array_singalong:
+        array_newnotes.append(["E", note[0], singalong_pitch, '7f', note[1] - note[0], '90'])
+
+    venue = tracks_array["VENUE"]
+    array_venue_data = process_instrument(venue)
+    array_venue_notes = array_venue_data[1]
+    venue_end_part = array_venue_data[2]
+    venue_start_part = array_venue_data[3]
+    array_notesevents_venue = create_notes_array(array_venue_notes)
+
+    # Checking for pre-existing sing-a-long notes in the VENUE track.
+    overwrite = False
+    array_venuenotes = []
+    for x in range(0,len(array_notesevents_venue[0])):
+        note = array_notesevents_venue[0][x]
+        if overwrite is False and note[2] == singalong_pitch:
+            result = RPR_MB("Found \"%s\" notes in VENUE. Do you wish to overwrite them?" % singalong_name,
+                    "Create sing-a-long", 3)
+            if result == 6:
+                overwrite = True
+            else:
+                return
+        else:
+            if note[2] != singalong_pitch:
+                array_venuenotes.append(note)
+
+    array_notescombined = array_venuenotes + array_newnotes
+
+    write_midi(venue, [array_notescombined, array_notesevents_venue[1]], venue_end_part, venue_start_part)
 
 def create_keys_animations():
     global maxlen
