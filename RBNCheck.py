@@ -2162,50 +2162,70 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
                         <div class="well sidebar-nav">
                             <h class="nav-list" style="font-weight: bold; font-size: 18px;">At a glance</h>
                             <ul class="nav nav-list">
-                                <section>
-                                <li class="nav-header">Drums</li>
-                                <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['drums_total_ods'] ) + '''</a></li>
-                                <li class=""><a href="#">Fill Count: ''' + "{}".format( dTmpl['drums_total_fills'] ) + '''</a></li>
-                                <li class=""><a href="#">Kicks on X: ''' + "{}".format( dTmpl['drums_total_kicks_x'] ) + '''</a></li>
-                                <li class=""><a href="#">Kicks on H: ''' + "{}".format( dTmpl['drums_total_kicks_h'] ) + '''</a></li>
-                                <li class=""><a href="#">Kicks on M: ''' + "{}".format( dTmpl['drums_total_kicks_m'] ) + '''</a></li>
-                                <li class=""><a href="#">Kicks on E: ''' + "{}".format( dTmpl['drums_total_kicks_e'] ) + '''</a></li>
-                                </section>
-                                <section>
-                                <li class="nav-header">Drums (2x)</li>
-                                <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['drums_2x_total_ods'] ) + '''</a></li>
-                                <li class=""><a href="#">Fill Count: ''' + "{}".format( dTmpl['drums_2x_total_fills'] ) + '''</a></li>
-                                <li class=""><a href="#">Kicks on X: ''' + "{}".format( dTmpl['drums_2x_total_kicks_x'] ) + '''</a></li>
-                                <li class=""><a href="#">Kicks on H: ''' + "{}".format( dTmpl['drums_2x_total_kicks_h'] ) + '''</a></li>
-                                <li class=""><a href="#">Kicks on M: ''' + "{}".format( dTmpl['drums_2x_total_kicks_m'] ) + '''</a></li>
-                                <li class=""><a href="#">Kicks on E: ''' + "{}".format( dTmpl['drums_2x_total_kicks_e'] ) + '''</a></li>
-                                </section>
-                                <section>
-                                <li class="nav-header">Bass</li>
-                                <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['bass_total_ods'] ) + '''</a></li>
-                                </section>
-                                <section>
-                                <li class="nav-header">Guitar</li>
-                                <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['guitar_total_ods'] ) + '''</a></li>
-                                </section>
-                                <section>
-                                <li class="nav-header">Rhythm</li>
-                                <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['rhythm_total_ods'] ) + '''</a></li>
-                                </section>
-                                <section>
-                                <li class="nav-header">Keys</li>
-                                <li class=""><a href="#">OD Count:    ''' + "{}".format( dTmpl['keys_total_ods'] ) + '''</a></li>
-                                </section>
-                                <section>
-                                <li class="nav-header">Pro Keys</li>
-                                <li class=""><a href="#">OD Count:    ''' + "{}".format( dTmpl['prokeys_total_ods'] ) + '''</a></li>
-                                </section>
-                                <section>
-                                <li class="nav-header">Vocals</li>
-                                <li class=""><a href="#">Vocals OD Count: ''' + str( len( dTmpl['vocals_od_start'] ) ) + '''</a></li>
-                                <li class=""><a href="#">Harmony 1 OD Count: ''' + str( len( dTmpl['harm1_od_start'] ) ) + '''</a></li>
-                                <section>
-                            </ul>
+                                '''
+    if has_drums:
+        var_html += '''<section>
+        <li class="nav-header">Drums</li>
+        <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['drums_total_ods'] ) + '''</a></li>
+        <li class=""><a href="#">Fill Count: ''' + "{}".format( dTmpl['drums_total_fills'] ) + '''</a></li>
+        <li class=""><a href="#">Kicks on X: ''' + "{}".format( dTmpl['drums_total_kicks_x'] ) + '''</a></li>
+        <li class=""><a href="#">Kicks on H: ''' + "{}".format( dTmpl['drums_total_kicks_h'] ) + '''</a></li>
+        <li class=""><a href="#">Kicks on M: ''' + "{}".format( dTmpl['drums_total_kicks_m'] ) + '''</a></li>
+        <li class=""><a href="#">Kicks on E: ''' + "{}".format( dTmpl['drums_total_kicks_e'] ) + '''</a></li>
+        </section>
+        '''
+    if has_drums_2x:
+        var_html += '''<section>
+    <li class="nav-header">Drums (2x)</li>
+    <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['drums_2x_total_ods'] ) + '''</a></li>
+    <li class=""><a href="#">Fill Count: ''' + "{}".format( dTmpl['drums_2x_total_fills'] ) + '''</a></li>
+    <li class=""><a href="#">Kicks on X: ''' + "{}".format( dTmpl['drums_2x_total_kicks_x'] ) + '''</a></li>
+    <li class=""><a href="#">Kicks on H: ''' + "{}".format( dTmpl['drums_2x_total_kicks_h'] ) + '''</a></li>
+    <li class=""><a href="#">Kicks on M: ''' + "{}".format( dTmpl['drums_2x_total_kicks_m'] ) + '''</a></li>
+    <li class=""><a href="#">Kicks on E: ''' + "{}".format( dTmpl['drums_2x_total_kicks_e'] ) + '''</a></li>
+    </section>
+    '''
+    if has_bass:
+        var_html += '''<section>
+    <li class="nav-header">Bass</li>
+    <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['bass_total_ods'] ) + '''</a></li>
+    </section>
+    '''
+    if has_guitar:
+        var_html += '''<section>
+    <li class="nav-header">Guitar</li>
+    <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['guitar_total_ods'] ) + '''</a></li>
+    </section>
+    '''
+    if has_rhythm:
+        var_html += '''<section>
+    <li class="nav-header">Rhythm</li>
+    <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['rhythm_total_ods'] ) + '''</a></li>
+    </section>
+    '''
+    if has_keys:
+        var_html += '''<section>
+    <li class="nav-header">Keys</li>
+    <li class=""><a href="#">OD Count:    ''' + "{}".format( dTmpl['keys_total_ods'] ) + '''</a></li>
+    </section>
+    '''
+    if has_prokeys:
+        var_html += '''<section>
+    <li class="nav-header">Pro Keys</li>
+    <li class=""><a href="#">OD Count:    ''' + "{}".format( dTmpl['prokeys_total_ods'] ) + '''</a></li>
+    </section>
+    '''
+    if has_vocals:
+        var_html += '''<section>
+    <li class="nav-header">Vocals</li>
+    <li class=""><a href="#">Vocals OD Count: ''' + str( len( dTmpl['vocals_od_start'] ) ) + '''</a></li>'''
+        if has_harm1:
+            var_html += '''<li class=""><a href="#">Harmony 1 OD Count: ''' + str( len( dTmpl['harm1_od_start'] ) ) + '''</a></li>'''
+    
+    if has_vocals:
+        var_html += '''</section>
+    '''
+    var_html += '''</ul>
                         </div><!--/.well -->
                     </div><!--/span-->
                     <div class="tab-content">
