@@ -2021,9 +2021,17 @@ switch_map = {"PART DRUMS" : handle_drums,
 # Clear the console before we start writing to it.
 RPR_ClearConsole()
 
-#Variables 
+#Variables
+
+file_name = ""
+file_name_split = ""
+rpr_enum = RPR_EnumProjects(-1, "", 512)
 num_media_items = RPR_CountMediaItems(0)
 media_item = 0
+
+if rpr_enum[2] != "":
+    file_name_split = rpr_enum[2].split('\\')
+    file_name = file_name_split[len(file_name_split) - 1]
 
 #Debug
 #console_msg(num_media_items) 
@@ -2100,10 +2108,11 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <!-- Le styles -->
     <link href="css/bootstrap.min.css" rel="stylesheet">
+    <link href='http://fonts.googleapis.com/css?family=Open+Sans:400,300,700'
+ rel='stylesheet' type='text/css'>
     <style type="text/css">
         body {
             color: #333;
-            padding-top: 60px;
             padding-bottom: 40px;
         }
         .sidebar-nav {
@@ -2111,12 +2120,12 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
         }
     </style>
     <!--<link href="css/bootstrap-responsive.css" rel="stylesheet">        -->
-    <title>RBN Checker - Filename</title>
+    <title>C3 Rules Validator</title>
 </HEAD>
 <body>
     <div class="container-fluid">
-        <ul class="nav nav-tabs">'''
-    
+        <h3 style="color: white; padding-top:16px; padding-bottom:16px;">''' + file_name + '''</h3>
+        <ul class="nav nav-tabs" >'''
 
     if has_drums:
         var_html += '''<li class="active"><a href="#tab_drums" data-toggle="tab">Drums ''' + dTmpl['drums_error_icon'] + '''</a></li>'''
@@ -2148,10 +2157,10 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
     <div class="container-fluid">
         <div class="row-fluid" style="background-color: white;">
             <div class="span9">
-                <div class="tabbable" style="margin-bottom: 2%; margin-top: 1%">
+                <div class="tabbable">
                     <div class="span2">
-                        <h3>At a glance</h3>
                         <div class="well sidebar-nav">
+                            <h class="nav-list" style="font-weight: bold; font-size: 18px;">At a glance</h>
                             <ul class="nav nav-list">
                                 <section>
                                 <li class="nav-header">Drums</li>
