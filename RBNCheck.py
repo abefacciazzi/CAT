@@ -3,6 +3,7 @@
 #
 # Hiya, I'm Sean. I'm making even more modifications to this script for C3 purposes.
 #
+# Please check the GitHub page for further changes.
 # 2020-01-13, BUGFIX : Import all of reaper_python to make loading from CAT happy.
 # 2019-12-08, BUGFIX : Rewrote part finding to actually work in REAPER 6+.
 # 2019-12-08, BUGFIX : Treat "PART REAL _KEYS_H" as "PART REAL_KEYS_H" because the C3 Template has this error.
@@ -146,6 +147,7 @@ var_sets = [
                         'harm1_od_start',
                         'harm2_od_start',
                         'harm3_od_start',
+                        
                         'drums_error_icon',                        
                         'bass_error_icon',
                         'guitar_error_icon',
@@ -162,6 +164,7 @@ var_sets = [
                         'harm3_error_icon',
                         'events_error_icon',
                         'venue_error_icon',
+
                         'drums_total_ods',
                         'drums_total_fills',
                         'drums_total_kicks_x',
@@ -174,6 +177,20 @@ var_sets = [
                         'drums_tom_marker',
                         'drums_fills_errors',
                         'drums_general_issues',
+                        
+                        'drums_2x_total_ods',
+                        'drums_2x_total_fills',
+                        'drums_2x_total_kicks_x',
+                        'drums_2x_total_kicks_h',
+                        'drums_2x_total_kicks_m',
+                        'drums_2x_total_kicks_e',
+                        'drums_2x_kick_gem',
+                        'drums_2x_kick_gem_m',
+                        'drums_2x_not_found_lower',
+                        'drums_2x_tom_marker',
+                        'drums_2x_fills_errors',
+                        'drums_2x_general_issues',
+                        
                         'bass_green_oranges_three',
                         'bass_chords_four_notes',
                         'bass_chords_three_notes',
@@ -183,6 +200,7 @@ var_sets = [
                         'bass_chords_m_hopos',
                         'bass_chords_easy',
                         'bass_general_issues',
+
                         'guitar_green_oranges_three',
                         'guitar_chords_four_notes',
                         'guitar_chords_three_notes',
@@ -192,6 +210,7 @@ var_sets = [
                         'guitar_chords_m_hopos',
                         'guitar_chords_easy',
                         'guitar_general_issues',
+
                         'rhythm_green_oranges_three',
                         'rhythm_chords_four_notes',
                         'rhythm_chords_three_notes',
@@ -201,15 +220,18 @@ var_sets = [
                         'rhythm_chords_m_hopos',
                         'rhythm_chords_easy',
                         'rhythm_general_issues',
+
                         'keys_general_issues',
                         'keys_gems_not_found',
                         'keys_chords_four_notes',
                         'keys_chords_three_notes',
-                        'keys_chords_easy',                        
+                        'keys_chords_easy',       
+
                         'real_keys_x_general_issues',
                         'real_keys_h_general_issues',
                         'real_keys_m_general_issues',
-                        'real_keys_e_general_issues',                        
+                        'real_keys_e_general_issues',   
+
                         'vocals_general_issues',
                         'vocals_phrases',
                         'harm1_general_issues',
@@ -218,10 +240,13 @@ var_sets = [
                         'harm2_phrases',
                         'harm3_general_issues',
                         'harm3_phrases',
+
                         'first_event',
                         'last_event',
                         'events_list',
+
                         'drums_pos_od',
+                        'drums_2x_pos_od',
                         'guitar_pos_od',
                         'rhythm_pos_od',
                         'bass_pos_od',
@@ -233,18 +258,24 @@ for elem in var_sets:
 # (end) Template Dictionary
 
 #These variables control if we have a certain instrument or track
-has_drums, has_bass, has_guitar, has_rhythm, has_vocals, has_harm1, has_harm2, has_harm3, has_keys, has_prokeys = (False, False, False, False, False, False, False, False, False, False)
+has_drums, has_drums_2x, has_bass, has_guitar, has_rhythm, has_vocals, has_harm1, has_harm2, has_harm3, has_keys, has_prokeys = (False, False, False, False, False, False, False, False, False, False, False)
 
 # (start) Funciones de manejo de instrumentos
 def handle_drums( content, part_name ):
+
+        if part_name == "PART DRUMS":
+            drumtype = "drums"
+        else:
+            drumtype = "drums_2x"
+
         localTmpl = {}
-        localTmpl['drums_kick_gem'] = ''
-        localTmpl['drums_kick_gem_m'] = ''
-        localTmpl['drums_not_found_lower'] = ''
-        localTmpl['drums_tom_marker'] = ''
-        localTmpl['drums_fills_errors'] = ''
-        localTmpl['drums_general_issues'] = ''
-        localTmpl['drums_error_icon'] = ''
+        localTmpl[ drumtype + '_kick_gem'] = ''
+        localTmpl[ drumtype + '_kick_gem_m'] = ''
+        localTmpl[ drumtype + '_not_found_lower'] = ''
+        localTmpl[ drumtype + '_tom_marker'] = ''
+        localTmpl[ drumtype + '_fills_errors'] = ''
+        localTmpl[ drumtype + '_general_issues'] = ''
+        localTmpl[ drumtype + '_error_icon'] = ''
         l_gems = []
         r_gems = []
         has_error = False
@@ -356,7 +387,7 @@ def handle_drums( content, part_name ):
             for notes_item_2 in filter(lambda x: x.pos == notes_item.pos and ( x.value >=61 and    x.value <=65) , l_gems):
                 if( notes_item_2.value > 0 ):
                     debug( "Found Kick + Gem [ {} ] at {} - ( {},{} )".format( num_to_text[ notes_item_2.value ], format_location( notes_item.pos ), notes_item_2.value, notes_item.pos ), True )
-                    localTmpl['drums_kick_gem'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> Kick + {}</span></div>'.format( format_location( notes_item.pos ), num_to_text[ notes_item_2.value ] )
+                    localTmpl[ drumtype + '_kick_gem'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> Kick + {}</span></div>'.format( format_location( notes_item.pos ), num_to_text[ notes_item_2.value ] )
                     has_error = True
         
         debug( "=================== ENDS EASY DRUMS: Error Kick + Gem ===================", True )
@@ -379,7 +410,7 @@ def handle_drums( content, part_name ):
                     debug( "{}".format(gems), True ) 
                     debug( "Found Kick + 2 Gems [ {} + {} ] at {} - ( {} )".format( num_to_text[ gems[0][0] ], num_to_text[ gems[1][0] ], format_location( notes_item.pos ), notes_item.pos ), True ) 
                 
-                    localTmpl['drums_kick_gem_m'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> Kick + 2 Gems [ {} + {} ]</span></div>'.format( format_location( notes_item.pos ), num_to_text[ gems[0][0] ]    , num_to_text[ gems[1][0] ] )
+                    localTmpl[ drumtype + '_kick_gem_m'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> Kick + 2 Gems [ {} + {} ]</span></div>'.format( format_location( notes_item.pos ), num_to_text[ gems[0][0] ]    , num_to_text[ gems[1][0] ] )
                     has_error = True
         #debug(str(tempo), True)
         debug( "=================== ENDS MEDIUM DRUMS: Error Kick + 2 Gems ===================", True )
@@ -457,7 +488,7 @@ def handle_drums( content, part_name ):
                 if not( filter(lambda x: ( x.value in [ 110, 111, 112 ] ) and x.pos == midi_note_pos, l_gems) ):            
                     debug( "Tom Marker not found for Drum Animation at {}".format( format_location( midi_note_pos ) ) , True )
                         
-                    localTmpl['drums_tom_marker'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> tom marker not found in drum animations</span></div>'.format( format_location( midi_note_pos ) )
+                    localTmpl[ drumtype + '_tom_marker'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> tom marker not found in drum animations</span></div>'.format( format_location( midi_note_pos ) )
                     has_error = True
             debug( "=================== ENDS ANIMATION BUT NO PRO MARKER ===================", True )
         
@@ -489,27 +520,27 @@ def handle_drums( content, part_name ):
                             overlap_fill_overdrive_start.append( notes_item.pos )
                             debug( "WARNING: Found {} ending right before Fill #{} at {} - [ {},{} ] )".format( num_to_text[ od_midi_note.value ], index+1, format_location( od_midi_note.pos ), od_midi_note.value, od_midi_note.pos ), True )
                     
-                            localTmpl['drums_fills_errors'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} ending right before drum fill #{}</span></div>'.format( format_location( od_midi_note.pos ), num_to_text[ od_midi_note.value ], index+1 )
+                            localTmpl[ drumtype + '_fills_errors'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} ending right before drum fill #{}</span></div>'.format( format_location( od_midi_note.pos ), num_to_text[ od_midi_note.value ], index+1 )
                             has_error = True
                         #If the od starts right after the drum fill give a warning
                         elif( od_midi_note.pos == fill_end[index] ):
                             overlap_fill_overdrive_end.append( notes_item.pos )
                             debug( "Found {} starting right after in Fill #{} at {} - [ {},{} ] )".format( num_to_text[ od_midi_note.value ], index+1, format_location( od_midi_note.pos ), od_midi_note.value, od_midi_note.pos ), True )
                     
-                            localTmpl['drums_fills_errors'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} starting right after drum fill #{}</span></div>'.format( format_location( od_midi_note.pos ), num_to_text[ od_midi_note.value ], index+1 )
+                            localTmpl[ drumtype + '_fills_errors'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} starting right after drum fill #{}</span></div>'.format( format_location( od_midi_note.pos ), num_to_text[ od_midi_note.value ], index+1 )
                             has_error = True
                         #Is a regular overlpa so error message
                         else:
                             overlap_fill_overdrive.append( notes_item.pos )
                             debug( "Found {} overlap in Fill #{} at {} - [ {},{} ] )".format( num_to_text[ od_midi_note.value ], index+1, format_location( od_midi_note.pos ), od_midi_note.value, od_midi_note.pos ), True )
                     
-                            localTmpl['drums_fills_errors'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} overlaps drum fill #{}</span></div>'.format( format_location( od_midi_note.pos), num_to_text[ od_midi_note.value ], index+1 )
+                            localTmpl[ drumtype + '_fills_errors'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} overlaps drum fill #{}</span></div>'.format( format_location( od_midi_note.pos), num_to_text[ od_midi_note.value ], index+1 )
                             has_error = True
                     if( midi_check == 126 ):
                         overlap_fill_drum_roll.append( notes_item.pos )
                         debug( "Found {} overlap in Fill #{} at {} - [ {},{} ] )".format( num_to_text[ od_midi_note.value ], index+1, format_location( od_midi_note.pos ), od_midi_note.value, od_midi_note.pos ), True )
                     
-                        localTmpl['drums_fills_errors'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} overlaps drum fill #{}</span></div>'.format( format_location( od_midi_note.pos) , num_to_text[ od_midi_note.value ], index+1 )
+                        localTmpl[ drumtype + '_fills_errors'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> {} overlaps drum fill #{}</span></div>'.format( format_location( od_midi_note.pos) , num_to_text[ od_midi_note.value ], index+1 )
                         has_error = True
 
                 #We only need this to be printed once.. 
@@ -580,20 +611,25 @@ def handle_drums( content, part_name ):
         debug( "=================== ENDS TOTAL DRUMS: Some numbers and stats ===================", True )
         
         #Save all variable sin DICT for output
-        localTmpl["drums_total_kicks_x"] = total_kicks_x
-        localTmpl["drums_total_kicks_h"] = total_kicks_h
-        localTmpl["drums_total_kicks_m"] = total_kicks_m
-        localTmpl["drums_total_kicks_e"] = total_kicks_e
-        localTmpl["drums_total_fills"] = total_fills
-        localTmpl["drums_total_ods"] = total_ods
-        localTmpl["drums_pos_od"] = drums_pos_od
+        localTmpl[ drumtype + "_total_kicks_x"] = total_kicks_x
+        localTmpl[ drumtype + "_total_kicks_h"] = total_kicks_h
+        localTmpl[ drumtype + "_total_kicks_m"] = total_kicks_m
+        localTmpl[ drumtype + "_total_kicks_e"] = total_kicks_e
+        localTmpl[ drumtype + "_total_fills"] = total_fills
+        localTmpl[ drumtype + "_total_ods"] = total_ods
+        localTmpl[ drumtype + "_pos_od"] = drums_pos_od
 
         if len(all_notes) > 8:
-            global has_drums
-            has_drums = True
+            if part_name == "PART DRUMS":
+                global has_drums
+                has_drums = True
+            else:
+                global has_drums_2x
+                has_drums_2x = True
+            
 
         if( has_error ):
-            localTmpl['drums_error_icon'] = '<i class="icon-exclamation-sign"></i>'
+            localTmpl[ drumtype + '_error_icon'] = '<i class="icon-exclamation-sign"></i>'
         
         return localTmpl
 
@@ -1263,12 +1299,12 @@ def handle_vocals(content, part_name ):
                         #Is the syllable upper case? This is not valid!    
                         if( full_phrase != '' and syllable[0].isupper() and "I" not in syllable and "I'm" not in syllable and "I'll" not in syllable and "I'd" not in syllable and "God" not in syllable ):
                             debug("ERROR: syllable \"{}\" should not be uppercase at {} - [{}, {}]".format(syllable,    format_location( od_midi_note.pos ),    item,    od_midi_note.pos ), True)                        
-                            output_syllable = '<span class="alert-info" title="Should not be uppercase"><strong>{}</strong></span> '.format( syllable )
+                            output_syllable = '<span class="alert-info" title="Should not be uppercase"><strong>{}</strong></span>'.format( syllable )
                             has_error = True
                         elif( ( full_phrase == '' or check_caps == True ) and not syllable[0].isupper() ):
                             check_caps = False
                             debug("ERROR: syllable \"{}\" should be uppercase at {} - [{}, {}]".format(syllable,    format_location( od_midi_note.pos ),    item,    od_midi_note.pos ), True)                            
-                            output_syllable = '<span class="alert-error" title="Should be uppercase"><strong>{}</strong></span> '.format( syllable )
+                            output_syllable = '<span class="alert-error" title="Should be uppercase"><strong>{}</strong></span>'.format( syllable )
                             has_error = True
 
                         if is_spoken:
@@ -1965,6 +2001,7 @@ def debug_html( output_content, add_new_line=False ):
     f.write( output_content )
 #Map functions to handlers
 switch_map = {"PART DRUMS" : handle_drums,
+                            "PART DRUMS_2X" : handle_drums,
                             "PART BASS" : handle_guitar,
                             "PART GUITAR" : handle_guitar,
                             "PART RHYTHM" : handle_guitar,
@@ -1980,6 +2017,9 @@ switch_map = {"PART DRUMS" : handle_drums,
                             #"VENUE" : handle_venue,
                             "EVENTS" : handle_events
                             }
+
+# Clear the console before we start writing to it.
+RPR_ClearConsole()
 
 #Variables 
 num_media_items = RPR_CountMediaItems(0)
@@ -2024,6 +2064,11 @@ with open(OUTPUT_FILE, 'w') as f:
 
             if "rhythm" in partname.lower(): 
                 trackname = "PART RHYTHM"
+
+            if "DRUMS" in trackname:
+                if "2x" in partname.lower():
+                    trackname = "PART DRUMS_2X"
+
                 
         
         debug_extra( "Part name is {}".format( partname ), True )
@@ -2075,6 +2120,8 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
 
     if has_drums:
         var_html += '''<li class="active"><a href="#tab_drums" data-toggle="tab">Drums ''' + dTmpl['drums_error_icon'] + '''</a></li>'''
+    if has_drums_2x:
+        var_html += '''<li><a href="#tab_drums_2x" data-toggle="tab">Drums (2x) ''' + dTmpl['drums_2x_error_icon'] + '''</a></li>'''
     if has_bass:
         var_html += '''<li><a href="#tab_bass" data-toggle="tab">Bass ''' + dTmpl['bass_error_icon'] + '''</a></li>'''
     if has_guitar:
@@ -2114,6 +2161,15 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
                                 <li class=""><a href="#">Kicks on H: ''' + "{}".format( dTmpl['drums_total_kicks_h'] ) + '''</a></li>
                                 <li class=""><a href="#">Kicks on M: ''' + "{}".format( dTmpl['drums_total_kicks_m'] ) + '''</a></li>
                                 <li class=""><a href="#">Kicks on E: ''' + "{}".format( dTmpl['drums_total_kicks_e'] ) + '''</a></li>
+                                </section>
+                                <section>
+                                <li class="nav-header">Drums (2x)</li>
+                                <li class=""><a href="#">OD Count: ''' + "{}".format( dTmpl['drums_2x_total_ods'] ) + '''</a></li>
+                                <li class=""><a href="#">Fill Count: ''' + "{}".format( dTmpl['drums_2x_total_fills'] ) + '''</a></li>
+                                <li class=""><a href="#">Kicks on X: ''' + "{}".format( dTmpl['drums_2x_total_kicks_x'] ) + '''</a></li>
+                                <li class=""><a href="#">Kicks on H: ''' + "{}".format( dTmpl['drums_2x_total_kicks_h'] ) + '''</a></li>
+                                <li class=""><a href="#">Kicks on M: ''' + "{}".format( dTmpl['drums_2x_total_kicks_m'] ) + '''</a></li>
+                                <li class=""><a href="#">Kicks on E: ''' + "{}".format( dTmpl['drums_2x_total_kicks_e'] ) + '''</a></li>
                                 </section>
                                 <section>
                                 <li class="nav-header">Bass</li>
@@ -2181,6 +2237,47 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
                                 <div>
                                     <h3 class="alert alert-error">Drum General Issues</h3>
                                     <div>''' + "{}".format( dTmpl['drums_general_issues'] ) + '''</div>
+                                </div>'''    
+    var_html += '''
+                            </div>
+                        </div>
+                        <div class="tab-pane" id="tab_drums_2x">
+                            <div class="span12">'''
+    if( dTmpl['drums_2x_kick_gem'] != '' ):
+        var_html += '''
+                                <div>
+                                    <h3 class="alert alert-error">Easy Kick + Gem</h3>
+                                    <div>''' + "{}".format( dTmpl['drums_2x_kick_gem'] ) + '''</div>
+                                </div>'''
+    if( dTmpl['drums_2x_kick_gem_m'] != '' ):
+        var_html += '''
+                                <div>
+                                    <h3 class="alert alert-error">Medium Kick + 2 Gems</h3>
+                                    <div>''' + "{}".format( dTmpl['drums_2x_kick_gem_m'] ) + '''</div>
+                                </div>'''    
+    if( dTmpl['drums_2x_not_found_lower'] != '' ):
+        var_html += '''
+                                <div>
+                                    <h3 class="alert alert-error">Lower Difficulties</h3>
+                                    <div>''' + "{}".format( dTmpl['drums_2x_not_found_lower'] ) + '''</div>
+                                </div>'''    
+    if( dTmpl['drums_2x_tom_marker'] != '' ):
+        var_html += '''
+                                <div>
+                                    <h3 class="alert alert-error">Tom Markers</h3>
+                                    <div>''' + "{}".format( dTmpl['drums_2x_tom_marker'] ) + '''</div>
+                                </div>'''    
+    if( dTmpl['drums_2x_fills_errors'] != '' ):
+        var_html += '''
+                                <div>
+                                    <h3 class="alert alert-error">Drum Fills Issues</h3>
+                                    <div>''' + "{}".format( dTmpl['drums_2x_fills_errors'] ) + '''</div>
+                                </div>'''    
+    if( dTmpl['drums_2x_general_issues'] != '' ):
+        var_html += '''
+                                <div>
+                                    <h3 class="alert alert-error">Drum General Issues</h3>
+                                    <div>''' + "{}".format( dTmpl['drums_2x_general_issues'] ) + '''</div>
                                 </div>'''    
     var_html += '''
                             </div>
@@ -2517,7 +2614,7 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
                                 <div class="lead"><h3>Overdrive Visualizer</h3></div>
                                 <table class="table table-condensed" id="" width="''' + "{}".format( ( int( dTmpl['last_event'] ) * 10 ) ) + '''px">
                             '''
-    for instrument in ['guitar','rhythm','bass','drums','keys']:
+    for instrument in ['drums','drums_2x','bass','guitar','rhythm','keys']:
         full_ods = dTmpl[ instrument + '_pos_od']
         if len(full_ods) > 0:
             if( len(full_ods)<1 ):
