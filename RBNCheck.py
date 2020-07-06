@@ -2023,6 +2023,7 @@ console_msg("")
 
 #Variables
 
+page_title = "C3 Rules Validator"
 file_name = ""
 file_name_split = ""
 rpr_enum = RPR_EnumProjects(-1, "", 512)
@@ -2032,6 +2033,7 @@ media_item = 0
 if rpr_enum[2] != "":
     file_name_split = rpr_enum[2].split('\\')
     file_name = file_name_split[len(file_name_split) - 1]
+    page_title = page_title + " - " + file_name
 
 #Debug
 #console_msg(num_media_items) 
@@ -2120,7 +2122,7 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
         }
     </style>
     <!--<link href="css/bootstrap-responsive.css" rel="stylesheet">        -->
-    <title>C3 Rules Validator</title>
+    <title>''' + page_title + '''</title>
 </HEAD>
 <body>
     <div class="container-fluid">
