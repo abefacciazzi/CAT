@@ -2019,7 +2019,7 @@ switch_map = {"PART DRUMS" : handle_drums,
                             }
 
 # Clear the console before we start writing to it.
-RPR_ClearConsole()
+console_msg("")
 
 #Variables
 
