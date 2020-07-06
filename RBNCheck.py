@@ -1308,7 +1308,7 @@ def handle_vocals(content, part_name ):
                             has_error = True
 
                         if is_spoken:
-                            output_syllable = "<i>{}</i>".format(syllable)
+                            output_syllable = "<i>" + output_syllable + "</i>"
 
                         full_phrase += syllable + ''
                         output_full_phrase += output_syllable + ''
