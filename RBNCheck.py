@@ -688,6 +688,8 @@ def handle_guitar(content, part_name ):
             74 : "Medium Yellow", 
             73 : "Medium Red",
             72 : "Medium Green",
+            66 : "Easy Force HOPO Off", 
+            65 : "Easy Force HOPO On", 
             64 : "Easy Orange", 
             63 : "Easy Blue",
             62 : "Easy Yellow", 
@@ -1202,6 +1204,7 @@ def handle_vocals(content, part_name ):
         phrase_start = []
         phrase_end = []
         #Start notes
+        debug_extra("Start Notes\n")
         for notes_item in l_gems:
             if notes_item.value == 105 or notes_item.value == 106:
                 #console_msg( str(len(phrase_start)) + "," + str(len(phrase_end)) + " - " + num_to_text[ notes_item.value ] + "," + str(notes_item.pos) + "\n" )
@@ -1219,7 +1222,9 @@ def handle_vocals(content, part_name ):
                 if( part_name == "HARM2" ):
                     global_harm2_phase_start.append( notes_item.pos )
                 debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ notes_item.value ], format_location( notes_item.pos ),notes_item.value, notes_item.pos ), True ) 
+
         #End notes
+        debug_extra("End Notes\n")
         for notes_item in r_gems:
             if notes_item.value == 105 or notes_item.value == 106:
                 #console_msg( str(len(phrase_start)) + "," + str(len(phrase_end)) + " - " + num_to_text[ notes_item.value ] + "," + str(notes_item.pos) + "\n" )
@@ -1250,6 +1255,11 @@ def handle_vocals(content, part_name ):
         special_characters = [',','�','’','"']
         special_characters_error = ['comma','smart apostrophe','smart apostrophe','quotes']
         last_note = 0
+
+        if len(phrase_start) != len(phrase_end):
+            console_msg("Phrase Marker start and end points are not equal! \n" + str(len(phrase_start)) + " != " + str(len(phrase_end)) + "\nThis WILL fail!\n")
+
+        debug_extra("Lyrics\n")
         #For each phrase marker we find the lyrics
         for index, item in enumerate(phrase_start):
             check_caps = False
