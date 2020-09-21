@@ -1737,10 +1737,11 @@ def handle_pro_keys(content, part_name ):
         }
         #debug (content, True)
         all_notes = re.findall(note_regex, content, re.MULTILINE)
-        noteloc = 0;
+        noteloc = 0
         c = Counter()
+        lane_shift_counter = 0
         for note in all_notes:
-            decval = 0;
+            decval = 0
             
             x, e = note            
             if x:
@@ -1759,7 +1760,15 @@ def handle_pro_keys(content, part_name ):
             #we can exclude notes off, text events, etc.
             if( midi_parts[0].lower() == 'e' and re.search("^9", midi_parts[2] ) ):
                 l_gems.append( Note(decval, noteloc) )
-                c[ noteloc ] += 1
+
+                # We want to ignore the range markers in chord checking.
+                if ( decval > 9 ):
+                    c[ noteloc ] += 1
+
+                # We want to count the range shifts for easier diffs.
+                if ( decval <= 9 ):
+                    lane_shift_counter += 1
+
                 debug_extra("Starts with 9: Midi # {}, MBT {}, Type {} ".format( str( decval ), str( noteloc ),str( midi_parts[2] ) ) )
                 #debug_extra( "{} at {}".format( num_to_text[decval], format_location( noteloc ) ), True )
             elif( midi_parts[0].lower() == 'e' and re.search("^8", midi_parts[2] ) ):            
@@ -1773,13 +1782,22 @@ def handle_pro_keys(content, part_name ):
         
         debug(str(c), True)
         debug("", True)
+        
+        # Medium / Easy Range check   
+        if ( dif_name == "Medium" or dif_name == "Easy" ):
+            if( lane_shift_counter > 1 ):
+                debug("More than one Range Marker found on " + dif_name, True)
+                localTmpl[ output_part_var + "_general_issues" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} difficulty: There are {} Range Markers.</span> </span></div>'.format( format_location( position ), dif_name, lane_shift_counter )
+                has_error = True
+
         debug("Will validate with {} max notes".format(max_notes), True)        
         for position, value in c.iteritems():
             debug( "{} notes found at {}".format( value, format_location( position ) ), True )            
             if( value > max_notes ):
                 debug("Found chord with {} notes".format( value ), True)
                 localTmpl[ output_part_var + "_general_issues" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} difficulty: Found chord with {} or more notes</span> </span></div>'.format( format_location( position ), dif_name, max_notes+1 )
-                has_error = True    
+                has_error = True
+
         '''
         #No gems under solo marker
         solo_start = []
