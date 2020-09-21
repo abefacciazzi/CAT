@@ -1307,11 +1307,11 @@ def handle_vocals(content, part_name ):
                                 output_syllable = '<span class="alert-error" title="{} in syllable"><strong>{}</strong></span> '.format( warning_characters_error[ index_char ], syllable.strip() )
                                 has_error = True
                         #Is the syllable upper case? This is not valid!    
-                        if( full_phrase != '' and syllable[0].isupper() and "I" not in syllable and "I'm" not in syllable and "I'll" not in syllable and "I'd" not in syllable and "God" not in syllable ):
+                        if( full_phrase != '' and syllable[0].isupper() and syllable[0].isalpha() and "I" not in syllable and "I'm" not in syllable and "I'll" not in syllable and "I'd" not in syllable and "God" not in syllable ):
                             debug("ERROR: syllable \"{}\" should not be uppercase at {} - [{}, {}]".format(syllable,    format_location( od_midi_note.pos ),    item,    od_midi_note.pos ), True)                        
                             output_syllable = '<span class="alert-info" title="Should not be uppercase"><strong>{}</strong></span>'.format( syllable )
                             has_error = True
-                        elif( ( full_phrase == '' or check_caps == True ) and not syllable[0].isupper() ):
+                        elif( ( full_phrase == '' or check_caps == True ) and not syllable[0].isupper() and syllable[0].isalpha() ):
                             check_caps = False
                             debug("ERROR: syllable \"{}\" should be uppercase at {} - [{}, {}]".format(syllable,    format_location( od_midi_note.pos ),    item,    od_midi_note.pos ), True)                            
                             output_syllable = '<span class="alert-error" title="Should be uppercase"><strong>{}</strong></span>'.format( syllable )
@@ -1782,12 +1782,12 @@ def handle_pro_keys(content, part_name ):
         
         debug(str(c), True)
         debug("", True)
-        
+
         # Medium / Easy Range check   
         if ( dif_name == "Medium" or dif_name == "Easy" ):
             if( lane_shift_counter > 1 ):
                 debug("More than one Range Marker found on " + dif_name, True)
-                localTmpl[ output_part_var + "_general_issues" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} difficulty: There are {} Range Markers.</span> </span></div>'.format( format_location( position ), dif_name, lane_shift_counter )
+                localTmpl[ output_part_var + "_general_issues" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} difficulty: There are {} Lane Shifts.</span> </span></div>'.format( format_location( position ), dif_name, lane_shift_counter )
                 has_error = True
 
         debug("Will validate with {} max notes".format(max_notes), True)        
