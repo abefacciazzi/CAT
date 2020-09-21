@@ -1272,12 +1272,12 @@ def handle_vocals(content, part_name ):
                     if( last_note == od_midi_note.pos ):
                         debug_extra("Here {} {}".format(last_note, item), True)                    
                     
-                    debug_extra("Syllable {} found at {}".format(lyric_positions[ od_midi_note.pos ], od_midi_note.pos), True)
-                    debug_extra("Last character is {}".format(lyric_positions[ od_midi_note.pos ][-1:] ), True)
+                    debug_extra("Syllable {} found at {}".format(str(lyric_positions[ od_midi_note.pos ]), od_midi_note.pos), True)
+                    debug_extra("Last character is {}".format(str(lyric_positions[ od_midi_note.pos ])[-1:] ), True)
                     if lyric_positions[ od_midi_note.pos ] != '+' and lyric_positions[ od_midi_note.pos ] != "+$":
 
                         is_spoken = False
-                        syllable = lyric_positions[ od_midi_note.pos ] + ' '
+                        syllable = str(lyric_positions[ od_midi_note.pos ]) + ' '
                         debug_extra(syllable, True)
 
                         # Check if any spoken characters exist, so we can make them italic later.
@@ -1323,7 +1323,7 @@ def handle_vocals(content, part_name ):
                         full_phrase += syllable + ''
                         output_full_phrase += output_syllable + ''
                     
-                    if lyric_positions[ od_midi_note.pos ][-1:] in punctuation:
+                    if str(lyric_positions[ od_midi_note.pos ])[-1:] in punctuation:
                         debug_extra("Word after \"{}\" needs to be checked for uppercase letter".format( syllable.strip() ), True)
                         check_caps = True
                     last_note = item
