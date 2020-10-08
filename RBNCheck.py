@@ -378,42 +378,66 @@ def handle_drums( content, part_name ):
                 debug("Text Event: Midi # {}, MBT {}, Type {}, Extra {} ".format( str( decval ), str( noteloc ),str( midi_parts[1] ),str( midi_parts[2] ) ) )
                 debug( "{} at {}".format( "None", format_location( noteloc ) ), True )
                 debug("")        
-        #Get all kicks in Easy and check for errors (K+GEM)
-        #Also we check for non existent gems on expert
-        debug( "", True )
-        debug( "=================== EASY DRUMS: Error Kick + Gem ===================", True )
-        for notes_item in filter(lambda x: x.value == 60, l_gems):
-            #We got all kicks positions, now we want to seearch if there is any other gem in the same position as the kick
-            for notes_item_2 in filter(lambda x: x.pos == notes_item.pos and ( x.value >=61 and    x.value <=65) , l_gems):
-                if( notes_item_2.value > 0 ):
-                    debug( "Found Kick + Gem [ {} ] at {} - ( {},{} )".format( num_to_text[ notes_item_2.value ], format_location( notes_item.pos ), notes_item_2.value, notes_item.pos ), True )
-                    localTmpl[ drumtype + '_kick_gem'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> Kick + {}</span></div>'.format( format_location( notes_item.pos ), num_to_text[ notes_item_2.value ] )
+
+        # Drum Validation
+        notes_start = [60, 72, 84, 96]
+        diff_name   = ["Easy","Medium","Hard","Expert"]
+        number_name = ["Zero", "One", "Two", "Three", "Four"]
+
+        for diff_index in range(4):
+
+            notes_kick  = Counter()
+            notes_pads  = Counter()
+
+            debug( "", True )
+            debug( "=================== " + diff_name[diff_index].upper() + " DRUMS: Gem Validation ===================", True )
+
+            # Get all the notes that were used.
+            for notes_item in filter(lambda x: x.value == notes_start[diff_index], l_gems):
+                notes_kick[notes_item.pos] += 1
+
+            for notes_item in filter(lambda x: ( x.value >= (notes_start[diff_index] + 1) and x.value <= (notes_start[diff_index] + 4) ) , l_gems):
+                notes_pads[notes_item.pos] += 1
+
+            debug(str(len(notes_kick)), True)
+            debug(str(len(notes_pads)), True)
+
+            debug(str(notes_kick), True)
+            debug(str(notes_pads), True)
+
+            # Do kick checking on difficulties less than Hard.
+            if diff_index < 2:
+                debug( "", True )
+                debug( "=================== " + diff_name[diff_index].upper() + " DRUMS: Kick + Gem ===================", True )
+
+                for kick_note in notes_kick:
+
+                    # Easy Check Kick + Gem
+                    if notes_pads[kick_note] > 0 and diff_index == 0 :
+                        debug( "Found Kick + Gem at {}".format( format_location( kick_note ) ), True )
+                        localTmpl[ drumtype + '_kick_gem'] += '<div class="row-fluid"><span class="span12"><strong>' + str(format_location( kick_note )) + '</strong> Kick + Gem</span></div>'
+                        has_error = True
+
+                    # Medium Check Kick + Gems
+                    if notes_pads[kick_note] > 1 and diff_index == 1 :
+                        debug( "Found Kick + Gems at {}".format( format_location( kick_note ) ), True )
+                        localTmpl[ drumtype + '_kick_gem_m'] += '<div class="row-fluid"><span class="span12"><strong>' + str(format_location( kick_note )) + '</strong> Kick + Gems</span></div>'
+                        has_error = True
+                    
+                debug( "=================== ENDS " + diff_name[diff_index].upper() + " DRUMS: Kick + Gem ===================", True )
+                debug( "", True )
+
+            # Check for too many pads hit at once.
+            for pad_note in notes_pads:
+
+                if notes_pads[pad_note] > 2:
+                    debug( "Found Kick + Gem at {}".format( format_location( kick_note ) ), True )
+                    localTmpl['drums_general_issues'] += '<div class="row-fluid"><span class="span12"><strong>' + str(format_location( pad_note )) + '</strong> ' + number_name[notes_pads[pad_note]] + ' Pads hit simultaneously on ' + diff_name[diff_index] + '</span></div>'
                     has_error = True
-        
-        debug( "=================== ENDS EASY DRUMS: Error Kick + Gem ===================", True )
-        
-        #Get all kicks in Medium and check for errors (K + 2 GEM)
-        debug( "", True )
-        debug( "=================== MEDIUM DRUMS: Error Kick + 2 Gems ===================", True )
-        counter_global = Counter()        
-        extra_gems_m = Counter()        
-        for notes_item in filter(lambda x: x.value == 72, l_gems):
-            #We got all kicks positions, now we want to seearch if there is any other gem in the same position as the kick
-            for notes_item_2 in filter(lambda x: x.pos == notes_item.pos and ( x.value >=73 and    x.value <=76) , l_gems):
-                counter_global[(notes_item.pos)] += 1
-                extra_gems_m[ ( notes_item_2.value, notes_item.pos ) ] += 1
-                
-            #Do we have more than one gem on top of kicks in this particular position?
-            if( counter_global[notes_item.pos] > 1 ):
-                gems = filter(lambda (x,y): y == notes_item.pos, extra_gems_m.keys() )
-                if( len(gems)>1 ):
-                    debug( "{}".format(gems), True ) 
-                    debug( "Found Kick + 2 Gems [ {} + {} ] at {} - ( {} )".format( num_to_text[ gems[0][0] ], num_to_text[ gems[1][0] ], format_location( notes_item.pos ), notes_item.pos ), True ) 
-                
-                    localTmpl[ drumtype + '_kick_gem_m'] += '<div class="row-fluid"><span class="span12"><strong>{}</strong> Kick + 2 Gems [ {} + {} ]</span></div>'.format( format_location( notes_item.pos ), num_to_text[ gems[0][0] ]    , num_to_text[ gems[1][0] ] )
-                    has_error = True
-        #debug(str(tempo), True)
-        debug( "=================== ENDS MEDIUM DRUMS: Error Kick + 2 Gems ===================", True )
+
+
+            debug( "=================== ENDS " + diff_name[diff_index].upper() + " DRUMS: Gem Validation ===================", True )
+
         '''
         debug( "", True )
         debug( "=================== MISSING GEMS LOWER DIFFICULTIES ===================", True )        
@@ -2270,7 +2294,7 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
     if( dTmpl['drums_kick_gem_m'] != '' ):
         var_html += '''
                                 <div>
-                                    <h3 class="alert alert-error">Medium Kick + 2 Gems</h3>
+                                    <h3 class="alert alert-error">Medium Kick + Gems</h3>
                                     <div>''' + "{}".format( dTmpl['drums_kick_gem_m'] ) + '''</div>
                                 </div>'''    
     if( dTmpl['drums_not_found_lower'] != '' ):
@@ -2311,7 +2335,7 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
     if( dTmpl['drums_2x_kick_gem_m'] != '' ):
         var_html += '''
                                 <div>
-                                    <h3 class="alert alert-error">Medium Kick + 2 Gems</h3>
+                                    <h3 class="alert alert-error">Medium Kick + Gems</h3>
                                     <div>''' + "{}".format( dTmpl['drums_2x_kick_gem_m'] ) + '''</div>
                                 </div>'''    
     if( dTmpl['drums_2x_not_found_lower'] != '' ):
