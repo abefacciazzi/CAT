@@ -1689,22 +1689,26 @@ def handle_pro_keys(content, part_name ):
         output_part_var = part_name.lower().replace( 'part ','' )        
         
         if ( part_name == "PART REAL_KEYS_X" ):
-            max_notes = 5
-            dif_name = "Expert"
+            max_notes = 4
+            max_span  = 12
+            dif_name  = "Expert"
             localTmpl["real_keys_x_error_icon"] = ''
             localTmpl[ "real_keys_x_general_issues" ] = ''
         if ( part_name == "PART REAL_KEYS_H" ):
             max_notes = 3
+            max_span  = 11
             dif_name = "Hard"
             localTmpl["real_keys_h_error_icon"] = ''
             localTmpl[ "real_keys_h_general_issues" ] = ''
         if ( part_name == "PART REAL_KEYS_M" ):
             max_notes = 2
+            max_span  = 9
             dif_name = "Medium"
             localTmpl["real_keys_m_error_icon"] = ''
             localTmpl[ "real_keys_m_general_issues" ] = ''
         if ( part_name == "PART REAL_KEYS_E" ):
             max_notes = 1
+            max_span  = 60 # This is intentionally wrong, because all chords are wrong on Easy.
             dif_name = "Easy"
             localTmpl["real_keys_e_error_icon"] = ''
             localTmpl[ "real_keys_e_general_issues" ] = ''
@@ -1763,6 +1767,9 @@ def handle_pro_keys(content, part_name ):
         all_notes = re.findall(note_regex, content, re.MULTILINE)
         noteloc = 0
         c = Counter()
+
+        chord_notes = {}
+
         lane_shift_counter = 0
         for note in all_notes:
             decval = 0
@@ -1785,9 +1792,25 @@ def handle_pro_keys(content, part_name ):
             if( midi_parts[0].lower() == 'e' and re.search("^9", midi_parts[2] ) ):
                 l_gems.append( Note(decval, noteloc) )
 
-                # We want to ignore the range markers in chord checking.
-                if ( decval > 9 ):
+                # Check only valid notes.
+                if ( decval >= 48 and decval <= 72 ):
                     c[ noteloc ] += 1
+
+                    # If it is an actual note, we want to find the highest and
+                    # lowest note in a chord for chord checking. Because we
+                    # don't know if it will be a chord, we must check every
+                    # note as they come.
+                    if noteloc not in chord_notes:
+                        chord_notes[noteloc] = {"lowest":72,"highest":48}
+                        pass
+
+                    if (chord_notes[noteloc]["lowest"] > decval):
+                        chord_notes[noteloc]["lowest"] = decval 
+                        pass
+
+                    if chord_notes[noteloc]["highest"] < decval:
+                        chord_notes[noteloc]["highest"] = decval 
+                        pass
 
                 # We want to count the range shifts for easier diffs.
                 if ( decval <= 9 ):
@@ -1803,6 +1826,7 @@ def handle_pro_keys(content, part_name ):
                 debug_extra("Text Event: Midi # {}, MBT {}, Type {}, Extra {} ".format( str( decval ), str( noteloc ),str( midi_parts[1] ),str( midi_parts[2] ) ) )
                 debug_extra( "{} at {}".format( "None", format_location( noteloc ) ), True )
                 debug_extra("")
+                pass
         
         debug(str(c), True)
         debug("", True)
@@ -1813,14 +1837,30 @@ def handle_pro_keys(content, part_name ):
                 debug("More than one Range Marker found on " + dif_name, True)
                 localTmpl[ output_part_var + "_general_issues" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} difficulty: There are {} Lane Shifts.</span> </span></div>'.format( format_location( position ), dif_name, lane_shift_counter )
                 has_error = True
+                pass
 
         debug("Will validate with {} max notes".format(max_notes), True)        
         for position, value in c.iteritems():
-            debug( "{} notes found at {}".format( value, format_location( position ) ), True )            
+ 
+            debug( "{} notes found at {}".format( value, format_location( position ) ), True )      
+
+            # Chord max note checking
             if( value > max_notes ):
                 debug("Found chord with {} notes".format( value ), True)
                 localTmpl[ output_part_var + "_general_issues" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} difficulty: Found chord with {} or more notes</span> </span></div>'.format( format_location( position ), dif_name, max_notes+1 )
                 has_error = True
+                pass
+
+            # Chord span checking
+            if ( value > 1 ):
+                if ( chord_notes[position]["highest"] - chord_notes[position]["lowest"] > ( max_span ) ):
+                    localTmpl[ output_part_var + "_general_issues" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} difficulty: Found chord spanning more than {} notes</span> </span></div>'.format( format_location( position ), dif_name, max_span )
+                    has_error = True
+                    pass
+                pass
+
+            pass
+
 
         '''
         #No gems under solo marker
