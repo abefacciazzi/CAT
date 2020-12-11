@@ -232,6 +232,16 @@ var_sets = [
                         'real_keys_m_general_issues',
                         'real_keys_e_general_issues',   
 
+                        'real_keys_x_lane_shift_issues',
+                        'real_keys_h_lane_shift_issues',
+                        'real_keys_m_lane_shift_issues',
+                        'real_keys_e_lane_shift_issues',   
+
+                        'real_keys_x_range_issues',
+                        'real_keys_h_range_issues',
+                        'real_keys_m_range_issues',
+                        'real_keys_e_range_issues',   
+
                         'vocals_general_issues',
                         'vocals_phrases',
                         'harm1_general_issues',
@@ -1693,31 +1703,36 @@ def handle_pro_keys(content, part_name ):
             max_notes = 4
             max_span  = 12
             dif_name  = "Expert"
-            localTmpl["real_keys_x_error_icon"] = ''
+            localTmpl[ "real_keys_x_error_icon" ] = ''
             localTmpl[ "real_keys_x_general_issues" ] = ''
+            localTmpl[ "real_keys_x_range_issues" ] = ''
+            localTmpl[ "real_keys_x_lane_shift_issues" ] = ''
         if ( part_name == "PART REAL_KEYS_H" ):
             max_notes = 3
             max_span  = 11
             dif_name = "Hard"
-            localTmpl["real_keys_h_error_icon"] = ''
+            localTmpl[ "real_keys_h_error_icon" ] = ''
             localTmpl[ "real_keys_h_general_issues" ] = ''
+            localTmpl[ "real_keys_h_range_issues" ] = ''
+            localTmpl[ "real_keys_h_lane_shift_issues" ] = ''
         if ( part_name == "PART REAL_KEYS_M" ):
             max_notes = 2
             max_span  = 9
             dif_name = "Medium"
-            localTmpl["real_keys_m_error_icon"] = ''
+            localTmpl[ "real_keys_m_error_icon" ] = ''
             localTmpl[ "real_keys_m_general_issues" ] = ''
+            localTmpl[ "real_keys_m_range_issues" ] = ''
+            localTmpl[ "real_keys_m_lane_shift_issues" ] = ''
         if ( part_name == "PART REAL_KEYS_E" ):
             max_notes = 1
             max_span  = 60 # This is intentionally wrong, because all chords are wrong on Easy.
             dif_name = "Easy"
-            localTmpl["real_keys_e_error_icon"] = ''
+            localTmpl[ "real_keys_e_error_icon" ] = ''
             localTmpl[ "real_keys_e_general_issues" ] = ''
-
-        localTmpl[ "prokeys_chords_four_notes"] = '';
-        localTmpl[ "prokeys_chords_three_notes"] = '';
-        localTmpl[ "prokeys_chords_easy"] = '';
-        localTmpl[ "prokeys_gems_not_found"] = '';
+            localTmpl[ "real_keys_e_range_issues" ] = ''
+            localTmpl[ "real_keys_e_lane_shift_issues" ] = ''
+            
+        
         num_to_text = {
             127 : "TRILL MARKER", 
             126 : "GLISSANDO MARKER",
@@ -1754,22 +1769,24 @@ def handle_pro_keys(content, part_name ):
             49:    "C#2",
             48:    "C2",
             9:    "Range A2-C4",
-            8:    "Range",
-            7:    "Range",
-            6:    "Range",
+            8:    "Invalid Range",
+            7:    "Range G2-B3",
+            6:    "Invalid Range",
             5:    "Range F2-A3",
-            4:    "Range",
-            3:    "Range",
-            2:    "Range",
-            1:    "Range",
+            4:    "Range E2-G3",
+            3:    "Invalid Range",
+            2:    "Range D2-F3",
+            1:    "Invalid Range",
             0:    "Range C2-C3"
         }
         #debug (content, True)
         all_notes = re.findall(note_regex, content, re.MULTILINE)
-        noteloc = 0
-        c = Counter()
-        chord_notes = {}
-        lane_shift_counter = 0
+        noteloc             = 0
+        c                   = Counter()
+        chord_notes         = {}
+        lane_shift_counter  = 0
+        current_range       = 0
+        note_range_start    = [48,0,50,0,52,53,0,55,0,57]
 
         for note in all_notes:
             decval = 0
@@ -1792,9 +1809,35 @@ def handle_pro_keys(content, part_name ):
             if( midi_parts[0].lower() == 'e' and re.search("^9", midi_parts[2] ) ):
                 l_gems.append( Note(decval, noteloc) )
 
+                # Lane Shifts
+                if ( decval <= 9 ):
+
+                    current_range = decval
+
+                    # We want to count the range shifts for easier diffs.
+                    # Medium / Easy Range check   
+                    if ( dif_name == "Medium" or dif_name == "Easy" ):
+                    
+                        lane_shift_counter += 1
+
+                        if( lane_shift_counter > 1 ):
+                            debug("More than one Range Marker found on " + dif_name, True)
+                            localTmpl[ output_part_var + "_lane_shift_issues" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} difficulty: Lane Shifts are not allowed on this difficulty.</span> </span></div>'.format( format_location( noteloc ), dif_name )
+                            has_error = True
+                            pass
+
+                        pass
+
                 # Check only valid notes.
                 if ( decval >= 48 and decval <= 72 ):
                     c[ noteloc ] += 1
+
+                    # Range Checking
+                    if ( decval < note_range_start[current_range] or decval > ( note_range_start[current_range] + 16) ):
+                        localTmpl[ output_part_var + "_range_issues" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} difficulty: Note {} not in {}</span> </span></div>'.format( format_location( noteloc ), dif_name, num_to_text[decval], num_to_text[current_range] )
+                        has_error = True
+                        pass
+
 
                     # If it is an actual note, we want to find the highest and
                     # lowest note in a chord for chord checking. Because we
@@ -1812,20 +1855,6 @@ def handle_pro_keys(content, part_name ):
                         chord_notes[noteloc]["highest"] = decval 
                         pass
 
-                # We want to count the range shifts for easier diffs.
-                # Medium / Easy Range check   
-                if ( dif_name == "Medium" or dif_name == "Easy" ):
-                    if ( decval <= 9 ):
-                        
-                        lane_shift_counter += 1
-
-                        if( lane_shift_counter > 1 ):
-                            debug("More than one Range Marker found on " + dif_name, True)
-                            localTmpl[ output_part_var + "_general_issues" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} difficulty: Lane Shifts are not allowed on this difficulty.</span> </span></div>'.format( format_location( noteloc ), dif_name )
-                            has_error = True
-                            pass
-
-                        pass
                     
                 debug_extra("Starts with 9: Midi # {}, MBT {}, Type {} ".format( str( decval ), str( noteloc ),str( midi_parts[2] ) ) )
                 #debug_extra( "{} at {}".format( num_to_text[decval], format_location( noteloc ) ), True )
@@ -2596,16 +2625,37 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
                         </div>
                         <div class="tab-pane" id="tab_prokeys">
                             <div class="span12">'''
+    
+    if( dTmpl['real_keys_x_lane_shift_issues'] + dTmpl['real_keys_h_lane_shift_issues'] + dTmpl['real_keys_m_lane_shift_issues'] + dTmpl['real_keys_e_lane_shift_issues'] != '' ):
+        var_html += '''
+                                <div>
+                                    <h3 class="alert alert-error">Lane Shift Issues</h3>
+                                    <div>''' + "{}".format( dTmpl['real_keys_x_lane_shift_issues'] ) + '''</div>
+                                    <div>''' + "{}".format( dTmpl['real_keys_h_lane_shift_issues'] ) + '''</div>
+                                    <div>''' + "{}".format( dTmpl['real_keys_m_lane_shift_issues'] ) + '''</div>
+                                    <div>''' + "{}".format( dTmpl['real_keys_e_lane_shift_issues'] ) + '''</div>
+                                </div>'''
+
+    if( dTmpl['real_keys_x_range_issues'] + dTmpl['real_keys_h_range_issues'] + dTmpl['real_keys_m_range_issues'] + dTmpl['real_keys_e_range_issues'] != '' ):
+        var_html += '''
+                                <div>
+                                    <h3 class="alert alert-error">Range Issues</h3>
+                                    <div>''' + "{}".format( dTmpl['real_keys_x_range_issues'] ) + '''</div>
+                                    <div>''' + "{}".format( dTmpl['real_keys_h_range_issues'] ) + '''</div>
+                                    <div>''' + "{}".format( dTmpl['real_keys_m_range_issues'] ) + '''</div>
+                                    <div>''' + "{}".format( dTmpl['real_keys_e_range_issues'] ) + '''</div>
+                                </div>'''
+    
     if( dTmpl['real_keys_x_general_issues'] + dTmpl['real_keys_h_general_issues'] + dTmpl['real_keys_m_general_issues'] + dTmpl['real_keys_e_general_issues'] != '' ):
         var_html += '''
                                 <div>
-                                    <h3 class="alert alert-error">Pro Keys Issues</h3>
+                                    <h3 class="alert alert-error">General Issues</h3>
                                     <div>''' + "{}".format( dTmpl['real_keys_x_general_issues'] ) + '''</div>
                                     <div>''' + "{}".format( dTmpl['real_keys_h_general_issues'] ) + '''</div>
                                     <div>''' + "{}".format( dTmpl['real_keys_m_general_issues'] ) + '''</div>
                                     <div>''' + "{}".format( dTmpl['real_keys_e_general_issues'] ) + '''</div>
                                 </div>'''
-                            
+    
     var_html += '''
                             </div>
                         </div>
