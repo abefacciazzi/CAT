@@ -1185,12 +1185,13 @@ def handle_vocals(content, part_name ):
         all_f_notes = content.split('\n')
         all_notes = []
         for elem in all_f_notes:        
-            if( re.match("^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+)$", elem) or re.match("^<([X,x]\s[a-f,0-9]+\s[a-f,0-9])", elem) ):
+            if( re.match(note_regex, elem) ):
                 all_notes.append( elem )
         all_l_notes = re.findall("^\/(.*)$", content, re.I | re.MULTILINE)
         noteloc = 0;
         decval="";
         c = []
+
         for elem in all_notes:
             decval = 0;
             midi_parts = elem.split()
@@ -1767,10 +1768,9 @@ def handle_pro_keys(content, part_name ):
         all_notes = re.findall(note_regex, content, re.MULTILINE)
         noteloc = 0
         c = Counter()
-
         chord_notes = {}
-
         lane_shift_counter = 0
+
         for note in all_notes:
             decval = 0
             
@@ -1813,9 +1813,20 @@ def handle_pro_keys(content, part_name ):
                         pass
 
                 # We want to count the range shifts for easier diffs.
-                if ( decval <= 9 ):
-                    lane_shift_counter += 1
+                # Medium / Easy Range check   
+                if ( dif_name == "Medium" or dif_name == "Easy" ):
+                    if ( decval <= 9 ):
+                        
+                        lane_shift_counter += 1
 
+                        if( lane_shift_counter > 1 ):
+                            debug("More than one Range Marker found on " + dif_name, True)
+                            localTmpl[ output_part_var + "_general_issues" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} difficulty: Lane Shifts are not allowed on this difficulty.</span> </span></div>'.format( format_location( noteloc ), dif_name )
+                            has_error = True
+                            pass
+
+                        pass
+                    
                 debug_extra("Starts with 9: Midi # {}, MBT {}, Type {} ".format( str( decval ), str( noteloc ),str( midi_parts[2] ) ) )
                 #debug_extra( "{} at {}".format( num_to_text[decval], format_location( noteloc ) ), True )
             elif( midi_parts[0].lower() == 'e' and re.search("^8", midi_parts[2] ) ):            
@@ -1827,22 +1838,21 @@ def handle_pro_keys(content, part_name ):
                 debug_extra( "{} at {}".format( "None", format_location( noteloc ) ), True )
                 debug_extra("")
                 pass
+
+            pass
+
+
+
+
+
         
         debug(str(c), True)
         debug("", True)
 
-        # Medium / Easy Range check   
-        if ( dif_name == "Medium" or dif_name == "Easy" ):
-            if( lane_shift_counter > 1 ):
-                debug("More than one Range Marker found on " + dif_name, True)
-                localTmpl[ output_part_var + "_general_issues" ] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>{} difficulty: There are {} Lane Shifts.</span> </span></div>'.format( format_location( position ), dif_name, lane_shift_counter )
-                has_error = True
-                pass
-
         debug("Will validate with {} max notes".format(max_notes), True)        
         for position, value in c.iteritems():
  
-            debug( "{} notes found at {}".format( value, format_location( position ) ), True )      
+            debug( "{} notes found at {}".format( value, format_location( position ) ), True )
 
             # Chord max note checking
             if( value > max_notes ):
@@ -1978,7 +1988,7 @@ def handle_events(content, part_name ):
         location_section_start = Counter()
         location_section_end = Counter()
         for elem in all_text_events:        
-            if( re.match("^([E,e]\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+\s[a-f,0-9]+)$", elem) or re.match("^<([X,x]\s[a-f,0-9]+\s[a-f,0-9]+)(.*)$", elem) ):
+            if( re.match(note_regex, elem) ):
                 all_notes.append( elem )
         all_l_notes = re.findall("^\/(.*)$", content, re.I | re.MULTILINE)
         noteloc = 0;        
