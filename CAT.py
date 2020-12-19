@@ -71,6 +71,9 @@ def execute_this(function):
 def RunCARV():
     global root
     root.destroy()
+
+    tempDirectory = (str(sys.path[0]) + "/CARV")
+    sys.path.insert(0,tempDirectory)
     import RBNCheck
 
 if __name__ == '__main__':
