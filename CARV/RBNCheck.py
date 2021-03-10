@@ -1233,11 +1233,13 @@ def handle_vocals(content, part_name ):
                 break
             debug_extra("Index {}: Encoded: {} || Decoded: {} at {} ( {} )".format(index, item, base64.b64decode( '/' + item )[2:],format_location( p_gems[index].pos ), p_gems[index].pos ), True)
             lyric_positions[ p_gems[index].pos ] = base64.b64decode( '/' + item )[2:]
+
         #Get all Phrase Markers
         debug( "", True )
         debug( "=================== " + part_name + ": Phrase Markers and lyrics ===================", True )
         phrase_start = []
         phrase_end = []
+
         #Start notes
         debug_extra("Start Notes\n")
         for notes_item in l_gems:
@@ -1277,24 +1279,33 @@ def handle_vocals(content, part_name ):
                 if( part_name == "HARM2" ):
                     global_harm2_phase_end.append( notes_item.pos )            
                 debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ notes_item.value ], format_location( notes_item.pos ),notes_item.value, notes_item.pos ), True )
+
         # Use HARM2 phrase markers for HARM3 to match in-game results.
         if( part_name == "HARM3" ):
             phrase_start = global_harm2_phase_start
             phrase_end = global_harm2_phase_end
+
         #
         reserved_words = ['[play]','[mellow]','[intense]','[idle]','[idle_intense]','[idle_realtime]'\
             ,'[tambourine_start]','[tambourine_end]','[cowbell_start]','[cowbell_end]','[clap_start]','[clap_end]']
+
+        reserved_syllables = ["I","I'm","I'll","I'd","God"]
+
         punctuation = ['?','!']
+
         warning_characters = ['.']
         warning_characters_error = ['period/dot']
+
         special_characters = [',','�','’','"']
         special_characters_error = ['comma','smart apostrophe','smart apostrophe','quotes']
+
         last_note = 0
 
         if len(phrase_start) != len(phrase_end):
-            console_msg("Phrase Marker start and end points are not equal! \n" + str(len(phrase_start)) + " != " + str(len(phrase_end)) + "\nThis WILL fail!\n")
+            console_msg("Phrase Marker start and end notes are not equal!\nPlease make sure your Off Values are set correctly!")
 
         debug_extra("Lyrics\n")
+
         #For each phrase marker we find the lyrics
         for index, item in enumerate(phrase_start):
             check_caps = False
@@ -1321,37 +1332,51 @@ def handle_vocals(content, part_name ):
                             syllable = syllable.replace("# ", " ")
                             is_spoken = True
 
+                        # Remove or replace any game specific characters from the syllable before we work with it.
                         syllable = syllable.replace("$", "")
                         syllable = syllable.replace("- ", "")
                         syllable = syllable.replace("= ", "-")
 
-                        #At this stage the output is the same as the syllable
+                        # At this stage the output is the same as the syllable.
                         output_syllable = syllable
                         debug_extra(output_syllable, True)
 
-                        #Check syllable for special characters
+                        # Check syllable for special characters.
                         for index_char, special_char in enumerate(special_characters):
                             if( syllable.find( special_char )!=-1 ):
                                 debug("ERROR: Found {} in syllable {} at {}".format( special_characters_error[ index_char ], syllable.strip(), format_location( od_midi_note.pos ) ), True)
                                 output_syllable = '<span class="alert-error" title="Found {} in syllable"><strong>{}</strong></span> '.format( special_characters_error[ index_char ], syllable.strip() )
                                 has_error = True
-                        #Check syllable for warning characaters
+
+                        # Check syllable for warning characters.
                         for index_char, special_char in enumerate(warning_characters):
                             if( syllable.find( special_char )!=-1 ):
                                 debug("WARNING: Found {} in syllable {} at {}".format( warning_characters_error[ index_char ], syllable.strip(), format_location( od_midi_note.pos ) ), True)
                                 output_syllable = '<span class="alert-error" title="{} in syllable"><strong>{}</strong></span> '.format( warning_characters_error[ index_char ], syllable.strip() )
                                 has_error = True
-                        #Is the syllable upper case? This is not valid!    
-                        if( full_phrase != '' and syllable[0].isupper() and syllable[0].isalpha() and "I" not in syllable and "I'm" not in syllable and "I'll" not in syllable and "I'd" not in syllable and "God" not in syllable ):
-                            debug("ERROR: syllable \"{}\" should not be uppercase at {} - [{}, {}]".format(syllable,    format_location( od_midi_note.pos ),    item,    od_midi_note.pos ), True)                        
-                            output_syllable = '<span class="alert-info" title="Should not be uppercase"><strong>{}</strong></span>'.format( syllable )
-                            has_error = True
-                        elif( ( full_phrase == '' or check_caps == True ) and not syllable[0].isupper() and syllable[0].isalpha() ):
-                            check_caps = False
-                            debug("ERROR: syllable \"{}\" should be uppercase at {} - [{}, {}]".format(syllable,    format_location( od_midi_note.pos ),    item,    od_midi_note.pos ), True)                            
-                            output_syllable = '<span class="alert-error" title="Should be uppercase"><strong>{}</strong></span>'.format( syllable )
-                            has_error = True
 
+                        # Capitalization checking
+                        # Check to see if we are starting a phrase, or if we are checking for capitalization.
+                        if full_phrase == '' or check_caps == True:
+                            # The syllable is not uppercase, so this is incorrect.
+                            if not syllable[0].isupper() and syllable[0].isalpha():
+                                check_caps = False
+                                debug("ERROR: syllable \"{}\" should be uppercase at {} - [{}, {}]".format(syllable, format_location( od_midi_note.pos ), item, od_midi_note.pos ), True)                            
+                                output_syllable = '<span class="alert-error" title="Should be uppercase"><strong>{}</strong></span>'.format( syllable )
+                                has_error = True
+                            else:
+                                # We found what we are looking for, so we can set this back.
+                                check_caps = False
+                        else:
+                            # Check to see if this syllable is ignored for capitalization.
+                            if syllable.strip() not in reserved_syllables:
+                                # Is the syllable uppercase? This is not valid!
+                                if syllable[0].isupper() and syllable[0].isalpha():
+                                    debug("ERROR: syllable \"{}\" should not be uppercase at {} - [{}, {}]".format(syllable, format_location( od_midi_note.pos ), item, od_midi_note.pos ), True)                        
+                                    output_syllable = '<span class="alert-info" title="Should not be uppercase"><strong>{}</strong></span>'.format( syllable )
+                                    has_error = True
+
+                        # We italicize spoken syllables in the page, like the game does.
                         if is_spoken:
                             output_syllable = "<i>" + output_syllable + "</i>"
 
@@ -1361,7 +1386,9 @@ def handle_vocals(content, part_name ):
                     if str(lyric_positions[ od_midi_note.pos ])[-1:] in punctuation:
                         debug_extra("Word after \"{}\" needs to be checked for uppercase letter".format( syllable.strip() ), True)
                         check_caps = True
+
                     last_note = item
+
             #Print full phrase
             debug("INFO: Phrase #{} from {} to {}: {}".format(index+1, format_location( item ),format_location( phrase_end[index] ), re.sub(r'\s+', ' ', full_phrase) ), True)
             localTmpl[ output_part_var + "_phrases"] += '<div class="row-fluid"><strong class="">{}</strong>: {} </div>'.format( format_location( item ), output_full_phrase )
