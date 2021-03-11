@@ -2280,6 +2280,7 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
         }
     </style>
     <!--<link href="css/bootstrap-responsive.css" rel="stylesheet">        -->
+    <link href="css/carv.css" rel="stylesheet">
     <title>''' + page_title + '''</title>
 </HEAD>
 <body>
