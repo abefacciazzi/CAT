@@ -1,3 +1,4 @@
+# CAT 1.3.0 dev
 from reaper_python import *
 import C3toolbox
 import create_beattrack
@@ -47,6 +48,7 @@ import fhp
 import pg_copy_od_solo
 import remove_notes_pg
 import create_singalong
+import reduce_by_pattern
 
 import os
 import sys
@@ -124,9 +126,12 @@ if __name__ == '__main__':
 
     cleanupnotesBtn = Tkinter.Button(sec5lane, text="Clean up notes' length", command= lambda: execute_this('cleanup_notes')) 
     cleanupnotesBtn.grid(row=2, column=5, rowspan=1, sticky="WE", padx=5, pady=2)
+
+    reducepatternBtn = Tkinter.Button(sec5lane, text="Reduce by pattern", command= lambda: execute_this('reduce_by_pattern'))
+    reducepatternBtn.grid(row=3, column=1, columnspan=1, sticky="WE", padx=5, pady=2)
     
     prokeysreduceBtn = Tkinter.Button(sec5lane, text="Reduce pro keys note density based on 5-lane", command= lambda: execute_this('remove_notes_prokeys')) 
-    prokeysreduceBtn.grid(row=3, column=1, columnspan=3, sticky="WE", padx=5, pady=2)
+    prokeysreduceBtn.grid(row=3, column=2, columnspan=3, sticky="WE", padx=5, pady=2)
     
 
     secDrums = Tkinter.LabelFrame(root, text=" Drums: ")

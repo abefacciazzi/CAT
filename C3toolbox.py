@@ -3118,6 +3118,154 @@ def reduce_chords(instrument, level, option, selected):
     array_notes = add_objects(array_notes, array_validobjects)
     write_midi(instrument, [array_notes, array_events], end_part, start_part)
 
+def reduce_by_pattern(instrument, level):
+
+    def shift_to_zero(note_array):
+        shifted_array = []
+        offset = note_array[0][1]
+        measure_offset = mbt(int(note_array[0][1]))[3]
+        for note in note_array:
+            offset_note = note[:] # Copy to not affect the old data
+            offset_note[1] = note[1] - offset + measure_offset
+            shifted_array.append(offset_note)
+        return shifted_array
+
+    def get_valid_notes_in_diff_range(i, notes, notes_dict, leveltxt, num_of_measures):
+        array_valid = []
+
+        current_measure = mbt(int(notes[i][1]))[0]
+        stop_measure = current_measure + num_of_measures + 1
+        while current_measure < stop_measure:
+            if i >= len(notes):
+                break
+
+            note = notes[i]
+
+            diff = notes_dict[note[2]][1]
+            if diff == leveltxt:
+                array_valid.append(note)
+            current_measure = mbt(int(note[1]))[0]
+            i = i + 1
+
+        return array_valid
+
+    def compare_measures(i, notes, notes_dict, x_objects, num_of_measures):
+        array_valid = get_valid_notes_in_diff_range(i, notes, notes_dict, "notes_x", num_of_measures)
+
+        if len(array_valid) == 0:
+            return False
+
+        valid_offset = shift_to_zero(array_valid)
+        valid_objects = note_objects(valid_offset)
+
+        return valid_objects == x_objects
+
+    instrument = tracks_array[instrument]
+    array_instrument_data = process_instrument(instrument)
+    array_instrument_notes = array_instrument_data[1]
+    end_part = array_instrument_data[2]
+    start_part = array_instrument_data[3]
+    array_notesevents = create_notes_array(array_instrument_notes)
+    array_notes = array_notesevents[0]
+    array_events = array_notesevents[1]
+    
+    instrumentname = ''
+
+    for instrument_name, instrument_id in tracks_array.iteritems():
+        if instrument_id == instrument:
+            instrumentname = instrument_name
+    leveltext = "notes_"+level
+    notes_dict = notesname_array[notesname_instruments_array[instrumentname]]
+
+    # This requires there to be selected measures, 
+    # so function will exit if nothing is selected.
+    notes_range = selected_range(array_notes)
+    if notes_range[0] == "unset":
+        RPR_MB("No selected range found in the specified instrument. Please select a range of notes to reduce from.", "No selection", 0)
+        return
+
+    first_measure = mbt(int(selected_range(array_notes)[0]))[0]
+    last_measure = mbt(int(selected_range(array_notes)[1]))[0]
+    diff_measures = last_measure - first_measure
+
+    array_x_range_absolute_pos = []
+    array_reduced_range_absolute_pos = []
+
+    # Collect the expert notes that will be compared
+    # and the lower diff notes to base the reductions from.
+    for note in array_notes:
+        if note[2] not in notes_dict:
+            invalid_note_mb(note, instrumentname)
+            return
+        this_measure = mbt(int(note[1]))[0]
+        if this_measure >= first_measure and this_measure <= last_measure:
+            diff = notes_dict[note[2]][1]
+            if diff == leveltext:
+                array_reduced_range_absolute_pos.append(note)
+            elif diff == "notes_x":
+                array_x_range_absolute_pos.append(note)
+
+    PM("\nlen expert range: {}\n".format(len(array_x_range_absolute_pos)))
+    PM("len reduced range: {}\n".format(len(array_reduced_range_absolute_pos)))
+
+    min_measure = mbt(int(array_notes[0][1]))[0]
+
+    # For searching purposes, there is no point in searching if the
+    # number of remaining measures is smaller than the measures to compare with
+    max_measure = mbt(int(array_notes[-1][1]))[0] - (last_measure - first_measure - 1)
+
+    # Set the absolute positions starting from zero 
+    # so they can be used with offsets later.
+    array_x_range = shift_to_zero(array_x_range_absolute_pos)
+    array_reduced_range = shift_to_zero(array_reduced_range_absolute_pos)
+
+    # Convert to objects so chords are one element
+    array_x_objects = note_objects(array_x_range)
+    array_reduced_objects = note_objects(array_reduced_range)
+
+    # Will check measure by measure to find a match
+    # When a match is found, existing notes will be added to a
+    # deletion queue and the pattern will be added to an addition
+    # queue.
+    array_todelete = []
+    array_toadd = []
+
+    modified = 0
+
+    prev_measure = min_measure - 1
+    for i in range(0, len(array_notes)):
+        note = array_notes[i]
+
+        this_measure = mbt(int(note[1]))[0]
+        if this_measure > max_measure:
+            break
+
+        if this_measure != prev_measure:
+            match = compare_measures(i, array_notes, notes_dict, array_x_objects, diff_measures)
+
+            if match:
+                range_todelete = get_valid_notes_in_diff_range(i, array_notes, notes_dict, leveltext, diff_measures)
+                array_todelete += range_todelete
+
+                offset = note[1]
+                for reduced_note in array_reduced_range:
+                    offset_note = reduced_note[:]
+                    offset_note[1] = reduced_note[1] + offset
+                    array_toadd.append(offset_note)
+
+                modified = modified + 1
+
+            prev_measure = this_measure
+
+    for i in range(0, len(array_todelete)):
+        array_notes.remove(array_todelete[i])
+
+    array_notes = add_objects(array_notes, note_objects(array_toadd))
+    write_midi(instrument, [array_notes, array_events], end_part, start_part)
+
+    if modified > 0:
+        RPR_MB("Replaced {} matched patterns.".format(modified), "Completed", 0)
+
 def edit_by_mbt(instrument, level, measure, beat, tick, notes, selected):
     #Measure, beat and tick: 0 for any, a number for specific measure or specific beat
     #0.1.50 removes note from any measure, beat 1, first eighth note
