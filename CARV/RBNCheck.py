@@ -301,6 +301,8 @@ def handle_drums( content, part_name ):
             112 : "Toms Gems Green",
             111 : "Tom Gems Blue", 
             110 : "Toms Gems Yellow",
+            106 : "Tug of War Marker (Player 2)",
+            105 : "Tug of War Marker",
             103 : "Solo Marker", 
             100 : "Expert Green", 
             99 : "Expert Blue",
@@ -661,6 +663,18 @@ def handle_drums( content, part_name ):
                 global has_drums_2x
                 has_drums_2x = True
             
+        phrases_p1 = 0
+        phrases_p2 = 0
+
+        for notes_item in filter(lambda x: x.value == 105 , l_gems):
+            phrases_p1 += 1
+        for notes_item in filter(lambda x: x.value == 106 , l_gems):
+            phrases_p2 += 1
+
+        if phrases_p1 > 0 or phrases_p2 > 0:
+            if phrases_p1 != phrases_p2:
+                localTmpl[ drumtype + "_general_issues"] += '<div class="row-fluid"><span class="span12"><strong class="">Tug of War:</strong> <span>Player 1 and 2 do not have an equal amount of Tug of War Markers!</span> </span></div>'
+                has_error = True
 
         if( has_error ):
             localTmpl[ drumtype + '_error_icon'] = '<i class="icon-exclamation-sign"></i>'
@@ -700,6 +714,8 @@ def handle_guitar(content, part_name ):
             121 : "BRE", 
             120 : "BRE",
             116 : "Overdrive",
+            106 : "Tug of War Marker (Player 2)",
+            105 : "Tug of War Marker",
             103 : "Solo Marker", 
             102 : "Expert Force HOPO Off", 
             101 : "Expert Force HOPO On", 
@@ -1073,6 +1089,20 @@ def handle_guitar(content, part_name ):
                 has_error = True
         debug( "=================== ENDS GENERAL " + part_name + ": NO MATCHING GEMS ON EXPERT / ALL NODES BEING USED ===================", True )
         '''
+
+        phrases_p1 = 0
+        phrases_p2 = 0
+
+        for notes_item in filter(lambda x: x.value == 105 , l_gems):
+            phrases_p1 += 1
+        for notes_item in filter(lambda x: x.value == 106 , l_gems):
+            phrases_p2 += 1
+
+        if phrases_p1 > 0 or phrases_p2 > 0:
+            if phrases_p1 != phrases_p2:
+                localTmpl[ output_part_var + "_general_issues"] += '<div class="row-fluid"><span class="span12"><strong class="">Tug of War:</strong> <span>Player 1 and 2 do not have an equal amount of Tug of War Markers!</span> </span></div>'
+                has_error = True
+
         #Get all positions for ods
         for notes_item in filter(lambda x: x.value == 116 , l_gems):            
             if( part_name == "PART GUITAR" ):                
@@ -1240,6 +1270,9 @@ def handle_vocals(content, part_name ):
         phrase_start = []
         phrase_end = []
 
+        phrases_p1 = 0
+        phrases_p2 = 0
+
         #Start notes
         debug_extra("Start Notes\n")
         for notes_item in l_gems:
@@ -1247,6 +1280,7 @@ def handle_vocals(content, part_name ):
                 #console_msg( str(len(phrase_start)) + "," + str(len(phrase_end)) + " - " + num_to_text[ notes_item.value ] + "," + str(notes_item.pos) + "\n" )
                 # Don't add a P2 marker, if there is a standard one there.
                 if notes_item.value == 106:
+                    phrases_p2 += 1
                     if len(phrase_start) > 1:
                         if phrase_start[ len(phrase_start) - 1 ] == notes_item.pos:
                             #console_msg('Skipping P2 marker, as a normal marker exists here...\n')
@@ -1255,6 +1289,7 @@ def handle_vocals(content, part_name ):
                             phrase_start.append( notes_item.pos )
                 else:
                     phrase_start.append( notes_item.pos )
+                    phrases_p1 += 1
                 #We need the global for harm2 so we can use for HARM3
                 if( part_name == "HARM2" ):
                     global_harm2_phase_start.append( notes_item.pos )
@@ -1279,6 +1314,13 @@ def handle_vocals(content, part_name ):
                 if( part_name == "HARM2" ):
                     global_harm2_phase_end.append( notes_item.pos )            
                 debug_extra( "Found {} at {} - ( {}, {} )".format( num_to_text[ notes_item.value ], format_location( notes_item.pos ),notes_item.value, notes_item.pos ), True )
+
+        # If you authored phrases for Tug of War, we want make sure they are equal.
+        if ( part_name == "PART VOCALS" ):
+            if phrases_p2 > 0:
+                if phrases_p1 != phrases_p2:
+                    localTmpl[ output_part_var + "_general_issues"] += '<div class="row-fluid"><span class="span12"><strong class="">Tug of War:</strong> <span>Player 1 and 2 do not have an equal amount of Phrase Markers!</span> </span></div>'
+                    has_error = True
 
         # Use HARM2 phrase markers for HARM3 to match in-game results.
         if( part_name == "HARM3" ):
