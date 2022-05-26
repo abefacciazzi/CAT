@@ -110,6 +110,13 @@ from ConfigParser import SafeConfigParser
 from reaper_python import *
 from reaper_python import RPR_ShowConsoleMsg as console_msg
 
+# Reload the encoding in order to use Unicode so we don't choke on anything non-ASCII.
+reload(sys)
+sys.setdefaultencoding('utf8')
+
+# Clear the console before we start writing to it.
+console_msg("")
+
 # (start) Config section
 parser = SafeConfigParser()
 parser.read( os.path.join( sys.path[0], "rbn_config.ini" ) )
@@ -1383,6 +1390,13 @@ def handle_vocals(content, part_name ):
                         output_syllable = syllable
                         debug_extra(output_syllable, True)
 
+                        for character in output_syllable:
+                            if ( ord(character) > 128  ):
+                                debug("ERROR: Non-ASCII character in syllable {} at {}".format( syllable.strip(),
+                                format_location( od_midi_note.pos ) ), True)
+                                output_syllable = '<span class="alert-error" title="Found Non-ASCII character ' + str(ord(character)) + ' in syllable"><strong>{}</strong></span> '.format( syllable.strip() )
+                                has_error = True
+
                         # Check syllable for special characters.
                         for index_char, special_char in enumerate(special_characters):
                             if( syllable.find( special_char )!=-1 ):
@@ -2218,9 +2232,6 @@ switch_map = {"PART DRUMS" : handle_drums,
                             "EVENTS" : handle_events
                             }
 
-# Clear the console before we start writing to it.
-console_msg("")
-
 #Variables
 
 page_title = "C3 Rules Validator"
@@ -2248,58 +2259,52 @@ with open(OUTPUT_FILE, 'w') as f:
         item = RPR_GetMediaItem(0, media_item);
         #bool, item, chunk, maxlen = RPR_GetSetItemState(item, chunk, maxlen);
         results = RPR_GetSetItemState(item, track_content, maxlen)
-        #
+
+        # Get the content of the track.
         track_content = results[2]
-        media_item = media_item + 1
-        
-        #
         debug_extra( track_content, True )
         debug_extra( 'END OF TRACK', True )
-        #
+
+        item_name = ""
+        track_name = ""
+
+        # Find the name of the item, and the track name event.
+        item_name_search = re.findall("^\s*NAME\s+(.*)", track_content, re.MULTILINE)
+        track_name_search = re.findall("<(x|X) 0 0+(.*)\n+(.*)", track_content)
+
+        # Set the item name if we found it.
+        if len(item_name_search) == 1:
+            item_name = item_name_search[0]
+
+        # Grab and decode the track name.
+        if len(track_name_search) > 0:
+            track_name = str(track_name_search)[str(track_name_search).find("/w"):str(track_name_search).find("')]")]
+            track_name = track_name.decode('base64')[2:]
+
+
+        if "rhythm" in item_name.lower():
+            track_name = "PART RHYTHM"
+
+        if "DRUMS" in track_name:
+            if "2x" in item_name.lower():
+                track_name = "PART DRUMS_2X"
+
+        debug_extra( "Part name is {}".format( track_name ), True )
         
-        part        = re.findall("^\s*NAME\s+(.*)", track_content, re.MULTILINE)
+        if track_name:
 
-        trackname   = ""
-        track       = re.findall("<X 0 0+(.*)\n+(.*)", track_content)
-        track       = str(track).split(", ")
-        
-        if len(track) > 1:
-            trackname   = (str(track[1])[1:-2])
-            if trackname.endswith("'"):
-                trackname = trackname[:-1]
-            trackname = base64.b64decode(trackname)[2:]
-
-        for i in part:
-            partname = i
-
-            if "rhythm" in partname.lower(): 
-                trackname = "PART RHYTHM"
-
-            if "DRUMS" in trackname:
-                if "2x" in partname.lower():
-                    trackname = "PART DRUMS_2X"
-
-                
-        
-        debug_extra( "Part name is {}".format( partname ), True )
-        
-        if trackname:
-
-            #console_msg( trackname )
-            #console_msg( " - " )  
-            #console_msg( partname )  
-            #console_msg( '\n' )  
-
-            func = switch_map.get(trackname, None)
+            func = switch_map.get(track_name, None)
             if func:
                 console_msg( 'Processing ' ) # Added this for visual feedback of the script running.
-                console_msg( trackname )
+                console_msg( track_name )
                 console_msg( '...\n' )
-                debug("########################### Executing function to handle %s #################################" % part[0] , True)
-                fTmpl = func( track_content, trackname )
+                debug("########################### Executing function to handle %s #################################" % item_name , True)
+                fTmpl = func( track_content, track_name )
                 dTmpl.update(fTmpl)
         
+        # Set the variables for the next loop.
         track_content = ""
+        media_item = media_item + 1
     
 with open(OUTPUT_HTML_FILE, 'w') as f:
     
@@ -2899,5 +2904,9 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
 </html>
 '''
     debug_html(str(var_html))
+
+# Revert the encoding back to ASCII because we are done.
+sys.setdefaultencoding('ascii')
+
 console_msg('Done! Opening web browser.')
 webbrowser.open( OUTPUT_HTML_FILE )
