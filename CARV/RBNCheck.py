@@ -1414,8 +1414,14 @@ def handle_vocals(content, part_name ):
                         # Capitalization checking
                         # Check to see if we are starting a phrase, or if we are checking for capitalization.
                         if full_phrase == '' or check_caps == True:
+
+                            # Check if the first character is an ', check the next one instead.
+                            _index = 0
+                            if syllable[0] == "'":
+                                _index = 1
+                                
                             # The syllable is not uppercase, so this is incorrect.
-                            if not syllable[0].isupper() and syllable[0].isalpha():
+                            if not syllable[_index].isupper() and syllable[_index].isalpha():
                                 check_caps = False
                                 debug("ERROR: syllable \"{}\" should be uppercase at {} - [{}, {}]".format(syllable, format_location( od_midi_note.pos ), item, od_midi_note.pos ), True)                            
                                 output_syllable = '<span class="alert-error" title="Should be uppercase"><strong>{}</strong></span>'.format( syllable )
@@ -1426,8 +1432,14 @@ def handle_vocals(content, part_name ):
                         else:
                             # Check to see if this syllable is ignored for capitalization.
                             if syllable.strip() not in reserved_syllables:
+
+                                # Check if the first character is an ', check the next one instead.
+                                _index = 0
+                                if syllable[0] == "'":
+                                    _index = 1
+
                                 # Is the syllable uppercase? This is not valid!
-                                if syllable[0].isupper() and syllable[0].isalpha():
+                                if syllable[_index].isupper() and syllable[_index].isalpha():
                                     debug("ERROR: syllable \"{}\" should not be uppercase at {} - [{}, {}]".format(syllable, format_location( od_midi_note.pos ), item, od_midi_note.pos ), True)                        
                                     output_syllable = '<span class="alert-info" title="Should not be uppercase"><strong>{}</strong></span>'.format( syllable )
                                     has_error = True
@@ -1475,11 +1487,12 @@ def handle_vocals(content, part_name ):
         #Start notes
         for notes_item in l_gems:
             for notes_item_2 in filter(lambda x: x.pos == notes_item.pos , r_gems):
-                debug("ERROR: Note {} starting at {} needs at least 2 64ths note gap between notes".format( num_to_text[ notes_item_2.value ], format_location( notes_item_2.pos ) ), True)
-                
-                localTmpl[ output_part_var + "_general_issues"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>Note {} needs at least a 1/32nd gap between notes</span> </span></div>'.format( format_location( notes_item_2.pos ), num_to_text[ notes_item_2.value ] )
-                
-                has_error = True
+                if notes_item_2.value != 105 and notes_item_2.value != 106 and notes_item_2.value != 116:
+                        debug("ERROR: Note {} starting at {} needs at least 2 64ths note gap between notes".format( num_to_text[ notes_item_2.value ], format_location( notes_item_2.pos ) ), True)
+                        
+                        localTmpl[ output_part_var + "_general_issues"] += '<div class="row-fluid"><span class="span12"><strong class="">{}</strong> <span>Note {} needs at least a 1/32nd gap between notes</span> </span></div>'.format( format_location( notes_item_2.pos ), num_to_text[ notes_item_2.value ] )
+                        
+                        has_error = True
             
         debug( "=================== ENDS " + part_name + ": Notes without space ===================", True )
         if len(all_notes) > 4:
