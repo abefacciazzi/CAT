@@ -450,8 +450,8 @@ def handle_drums( content, part_name ):
             for pad_note in notes_pads:
 
                 if notes_pads[pad_note] > 2:
-                    debug( "Found Kick + Gem at {}".format( format_location( kick_note ) ), True )
-                    localTmpl['drums_general_issues'] += '<div class="row-fluid"><span class="span12"><strong>' + str(format_location( pad_note )) + '</strong> ' + number_name[notes_pads[pad_note]] + ' Pads hit simultaneously on ' + diff_name[diff_index] + '</span></div>'
+                    debug( "Found Kick + Gem at {}".format( format_location( pad_note ) ), True )
+                    localTmpl[drumtype + '_general_issues'] += '<div class="row-fluid"><span class="span12"><strong>' + str(format_location( pad_note )) + '</strong> ' + number_name[notes_pads[pad_note]] + ' Pads hit simultaneously on ' + diff_name[diff_index] + '</span></div>'
                     has_error = True
 
 
@@ -2195,16 +2195,32 @@ def handle_events(content, part_name ):
         return localTmpl
 
 def format_location( note_location ):
-        '''
-        example 1 (time signature: 4/4, position in chunk: 7920, position in reaper: 3.1.25):
-        m = noteposition / (timesignature * (960 * 4)) + 1 = 7920 / ((4 / 4) * 3840) + 1 = 3.0625    (measures = 3 and remainder is 0.0625)
-        b = remainder / (1 / beats) + 1 = 0.0625 / (1 / 4) + 1 = 1.25    (3.1.25)
-        example 2 (time signature: 5/7, position in chunk: 3943, position in reaper: 2.3.19):
-        m = noteposition / (timesignature * (960 * 4)) + 1 = 3943 / ((5 / 7) * 3840) + 1 = 2.43755208333...    (measures = 2)
-        b = remainder / (1 / beats) + 1 = 0.43755208333.../ (1 / 5) + 1 = 3.18776041666...    (2.3.19)
-        '''
-        return ("{}.{}".format( int ( note_location / 1920 ) + 1 , int (( note_location % 1920) / 480 ) + 1 ))
-    
+
+        _location_amount = len(project_time_signature_location) - 1
+        _ppq = 480
+        
+        for _test in range(_location_amount):
+
+            _location_index = _location_amount - _test
+
+            if note_location >= project_time_signature_location[_location_index]:
+
+                _location_base = project_time_signature_location[_location_index]
+                _location_offset = note_location - _location_base
+
+                _location_num = project_time_signature_location_num[_location_index]
+                _location_denom = project_time_signature_location_denom[_location_index]
+
+                _divisor_factor = (_location_denom / 4)
+                _divisor = ( _ppq / _divisor_factor ) * _location_num
+
+                _time_1 = (_location_offset / _divisor) + project_time_signature_location_measure[_location_index]
+                _time_2 = (_location_offset % _divisor ) / ( _ppq / (_location_denom / 4) )
+
+                return ( str(_time_1 + 1)+ '.' + str(_time_2 + 1) )
+
+        return "Error.Error"
+   
 # [resto de las funciones]
 # (end) Funciones de manejo de instrumentos
 
@@ -2266,6 +2282,49 @@ if rpr_enum[2] != "":
 track_content = "";
 maxlen = 1048576;    # max num of chars to return
 
+
+# We start with this, just to grab a working media item for tick calculation.
+for media_item in xrange(0, num_media_items):
+        item = RPR_GetMediaItem(0, media_item)
+
+project_bpm = 120
+
+project_time_signature_count = RPR_CountTempoTimeSigMarkers(0)
+project_time_signature_num = 4
+project_time_signature_denom = 4
+
+project_time_signature_location         = [0]
+project_time_signature_location_measure = [0]
+project_time_signature_location_num     = [4]
+project_time_signature_location_denom   = [4]
+
+
+for _marker in range(0,project_time_signature_count):
+    (retval, proj, ptidx, timeposOut, measureposOut, beatposOut, bpmOut, timesig_numOut, timesig_denomOut, lineartempoOut) = RPR_GetTempoTimeSigMarker(0, _marker, 0, 0, 0, 0, 0, 0, 0)
+
+    if timesig_numOut != -1:
+        project_time_signature_num = timesig_numOut
+        project_time_signature_denom = timesig_denomOut
+
+    #if bpmOut != project_bpm:
+    #    project_bpm = bpmOut
+    #    console_msg("BPM changed to: " + str(project_bpm))
+    #    console_msg( '\n' )
+
+    #if lineartempoOut == 1:
+    #    console_msg( "TODO: This marker has \"Gradually transition tempo to next marker\" set.\nRock Band does not support this, yell about it in CARV." )
+    #    console_msg( '\n' )
+
+
+    time_signature_location_ticks = RPR_MIDI_GetPPQPosFromProjTime( RPR_GetActiveTake( item ), timeposOut )
+
+    project_time_signature_location.append(int(time_signature_location_ticks))
+    project_time_signature_location_measure.append(measureposOut)
+    project_time_signature_location_num.append(project_time_signature_num)
+    project_time_signature_location_denom.append(project_time_signature_denom)
+
+
+
 with open(OUTPUT_FILE, 'w') as f:
 
     for media_item in xrange(0, num_media_items):
@@ -2291,9 +2350,8 @@ with open(OUTPUT_FILE, 'w') as f:
 
         # Grab and decode the track name.
         if len(track_name_search) > 0:
-            track_name = str(track_name_search)[str(track_name_search).find("/w"):str(track_name_search).find("')]")]
+            track_name = str(track_name_search[0][2])
             track_name = track_name.decode('base64')[2:]
-
 
         if "rhythm" in item_name.lower():
             track_name = "PART RHYTHM"
