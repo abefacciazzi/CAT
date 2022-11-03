@@ -2196,12 +2196,12 @@ def handle_events(content, part_name ):
 
 def format_location( note_location ):
 
-        _location_amount = len(project_time_signature_location) - 1
+        _location_amount = len(project_time_signature_location)
         _ppq = 480
-        
+
         for _test in range(_location_amount):
 
-            _location_index = _location_amount - _test
+            _location_index = ( _location_amount - 1 ) - _test
 
             if note_location >= project_time_signature_location[_location_index]:
 
@@ -2282,47 +2282,47 @@ if rpr_enum[2] != "":
 track_content = "";
 maxlen = 1048576;    # max num of chars to return
 
-
-# We start with this, just to grab a working media item for tick calculation.
-for media_item in xrange(0, num_media_items):
-        item = RPR_GetMediaItem(0, media_item)
-
 project_bpm = 120
+project_ppq = 480
 
-project_time_signature_count = RPR_CountTempoTimeSigMarkers(0)
+project_time_signature_count = 0
 project_time_signature_num = 4
 project_time_signature_denom = 4
 
+# Get the beginning of the song's time signature and BPM.
+(NULL, NULL, project_time_signature_num, project_time_signature_denom, project_bpm) = RPR_TimeMap_GetTimeSigAtTime(0, 0, 0, 0, 0)
+
 project_time_signature_location         = [0]
 project_time_signature_location_measure = [0]
-project_time_signature_location_num     = [4]
-project_time_signature_location_denom   = [4]
+project_time_signature_location_num     = [project_time_signature_num]
+project_time_signature_location_denom   = [project_time_signature_denom]
+
+project_time_signature_location_time    = 0
 
 
-for _marker in range(0,project_time_signature_count):
-    (retval, proj, ptidx, timeposOut, measureposOut, beatposOut, bpmOut, timesig_numOut, timesig_denomOut, lineartempoOut) = RPR_GetTempoTimeSigMarker(0, _marker, 0, 0, 0, 0, 0, 0, 0)
+project_time_signature_next_time = RPR_TimeMap2_GetNextChangeTime(0,project_time_signature_location_time)
 
-    if timesig_numOut != -1:
-        project_time_signature_num = timesig_numOut
-        project_time_signature_denom = timesig_denomOut
+while project_time_signature_next_time != -1:
 
-    #if bpmOut != project_bpm:
-    #    project_bpm = bpmOut
-    #    console_msg("BPM changed to: " + str(project_bpm))
-    #    console_msg( '\n' )
+    project_time_signature_count += 1
+    project_time_signature_location_time = project_time_signature_next_time
 
-    #if lineartempoOut == 1:
-    #    console_msg( "TODO: This marker has \"Gradually transition tempo to next marker\" set.\nRock Band does not support this, yell about it in CARV." )
-    #    console_msg( '\n' )
+    (NULL, NULL, project_time_signature_num, project_time_signature_denom, project_bpm) = RPR_TimeMap_GetTimeSigAtTime(0, project_time_signature_location_time, 0, 0, 0)
 
+    # Convert the time we are at to ticks for the note locations.
+    _QN = RPR_TimeMap_timeToQN(project_time_signature_location_time)
+    _ticks = int(_QN * project_ppq)
 
-    time_signature_location_ticks = RPR_MIDI_GetPPQPosFromProjTime( RPR_GetActiveTake( item ), timeposOut )
+    (NULL, NULL, NULL, _measureposOut, NULL, NULL, NULL) = RPR_TimeMap2_timeToBeats(0, project_time_signature_location_time, 0, 0, 0, 0)
 
-    project_time_signature_location.append(int(time_signature_location_ticks))
-    project_time_signature_location_measure.append(measureposOut)
+    # Add our results to the list.
+    project_time_signature_location.append(_ticks)
+    project_time_signature_location_measure.append(_measureposOut)
     project_time_signature_location_num.append(project_time_signature_num)
     project_time_signature_location_denom.append(project_time_signature_denom)
-
+    
+    # Get the next change.
+    project_time_signature_next_time = RPR_TimeMap2_GetNextChangeTime(0,project_time_signature_location_time)
 
 
 with open(OUTPUT_FILE, 'w') as f:
