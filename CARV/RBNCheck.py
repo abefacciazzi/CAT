@@ -1452,7 +1452,7 @@ def handle_vocals(content, part_name ):
                         full_phrase += syllable + ''
                         output_full_phrase += output_syllable + ''
                     
-                    if str(lyric_positions[ od_midi_note.pos ])[-1:] in punctuation:
+                    if syllable.strip()[-1:] in punctuation:
                         debug_extra("Word after \"{}\" needs to be checked for uppercase letter".format( syllable.strip() ), True)
                         check_caps = True
 
@@ -2853,12 +2853,13 @@ with open(OUTPUT_HTML_FILE, 'w') as f:
                             <div class="span12">'''
                             
     if( len( dTmpl['vocals_od_start'] ) != len( dTmpl['harm1_od_start'] ) ):
-        var_html += '''
-                            <div class="alert alert-error">
-                                <h3>Vocals Errors</h3>
-                                <div>- Number of OD phrases in PART VOCALS (''' + str( len( dTmpl['vocals_od_start'] ) ) + ''') is different than HARM1 (''' + str( len( dTmpl['harm1_od_start'] ) ) + ''')</div>
-                            </div>
-        '''
+        if has_harm1:
+            var_html += '''
+                                <div class="alert alert-error">
+                                    <h3>Vocals Errors</h3>
+                                    <div>- Number of OD phrases in PART VOCALS (''' + str( len( dTmpl['vocals_od_start'] ) ) + ''') is different than HARM1 (''' + str( len( dTmpl['harm1_od_start'] ) ) + ''')</div>
+                                </div>
+            '''
     else:
         for index, item in enumerate( dTmpl['vocals_od_start'] ):
             if( item != dTmpl['harm1_od_start'][index] or dTmpl['vocals_od_end'][index] != dTmpl['harm1_od_end'][index] ):
