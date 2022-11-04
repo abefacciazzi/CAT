@@ -2308,7 +2308,7 @@ while project_time_signature_next_time != -1:
     project_time_signature_count += 1
     project_time_signature_location_time = project_time_signature_next_time
 
-    (NULL, NULL, project_time_signature_num, project_time_signature_denom, project_bpm) = RPR_TimeMap_GetTimeSigAtTime(0, project_time_signature_location_time, 0, 0, 0)
+    (NULL, NULL, _project_time_signature_num, _project_time_signature_denom, project_bpm) = RPR_TimeMap_GetTimeSigAtTime(0, project_time_signature_location_time, 0, 0, 0)
 
     # Convert the time we are at to ticks for the note locations.
     _QN = RPR_TimeMap_timeToQN(project_time_signature_location_time)
@@ -2316,11 +2316,18 @@ while project_time_signature_next_time != -1:
 
     (NULL, NULL, NULL, _measureposOut, NULL, NULL, NULL) = RPR_TimeMap2_timeToBeats(0, project_time_signature_location_time, 0, 0, 0, 0)
 
-    # Add our results to the list.
-    project_time_signature_location.append(_ticks)
-    project_time_signature_location_measure.append(_measureposOut)
-    project_time_signature_location_num.append(project_time_signature_num)
-    project_time_signature_location_denom.append(project_time_signature_denom)
+    # Check to see if the time signature actually changed
+    if _project_time_signature_num != project_time_signature_num:
+        if _project_time_signature_denom != project_time_signature_denom:
+
+            project_time_signature_num = _project_time_signature_num
+            project_time_signature_denom = _project_time_signature_denom
+
+            # Add our results to the list.
+            project_time_signature_location.append(_ticks)
+            project_time_signature_location_measure.append(_measureposOut)
+            project_time_signature_location_num.append(project_time_signature_num)
+            project_time_signature_location_denom.append(project_time_signature_denom)
     
     # Get the next change.
     project_time_signature_next_time = RPR_TimeMap2_GetNextChangeTime(0,project_time_signature_location_time)
