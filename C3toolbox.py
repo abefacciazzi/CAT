@@ -1,6 +1,6 @@
 # -*- coding: cp1252 -*-
 # -*- additions by: Alternity, kueller -*-
-from reaper_python import *
+import traceback
 import operator
 import decimal
 import base64
@@ -9,6 +9,15 @@ import binascii
 import os
 import re
 import sys
+
+import reaper_python as rpy
+
+# Override this internal REAPER function to ignore unicode.
+def rpr_unpacks(v):
+    return str(v.value.decode('ascii', 'ignore'))
+
+rpy.rpr_unpacks = rpr_unpacks
+
 from C3notes import *
 
 global end_event
@@ -766,6 +775,7 @@ def prep_tracks():
         chunk = ""
         instrument = ""
         (boolvar, mi, chunk, maxlen) = RPR_GetSetItemState(mi, chunk, maxlen)
+        
         #CYCLING THROUGH ALL TRACKS TO FIND THOSE RELEVANT
         #This check needs to go off everytime a command is issued because if the user changes position of the tracks the IDs change
         if "PART BASS" == trackname:
@@ -3665,7 +3675,7 @@ def check_capitalization(instrument, selected):
                     result = 1
                     check = 1
                     #If we find both, we ask the user whether to abort or proceed
-                    result = RPR_MB( "The first word in this phrase ("+event[3]+") is not capitalized. Capitalize it?", "Lower case found", 1 )
+                    result = RPR_MB( "The first word in this phrase ("+event[3].decode('ascii', 'ignore')+") is not capitalized. Capitalize it?", "Lower case found", 1 )
                     if result == 1:
                         if quotes == 0:
                             event[3] = event[3].capitalize()
@@ -3683,7 +3693,7 @@ def check_capitalization(instrument, selected):
                     result = 1
                     check = 1
                     #If we find both, we ask the user whether to abort or proceed
-                    result = RPR_MB( "A word in the middle of the phrase is capitalized ("+event[3]+"). Make it lower case?", "Upper case found", 1 )
+                    result = RPR_MB( "A word in the middle of the phrase is capitalized ("+event[3].decode('ascii', 'ignore')+"). Make it lower case?", "Upper case found", 1 )
                     if result == 1:
                         if quotes == 0:
                             event[3] = event[3].lower()
@@ -5574,10 +5584,10 @@ def startup():
     try:
         prep_tracks()
     except UnicodeDecodeError:
-        RPR_MB("Invalid file name found in one of your tracks. "\
-                "Make sure there are no items with special characters in your project. \n\n"\
-                "The culprit is usually the song file itself. Look for accents and symbols. " \
-                "You can rename an item in Item Properties (F2).", 
+
+        RPR_MB("Unicode Error caught."\
+                "\n\nPlease screenshot this error and report it. \n\n"
+                +str(traceback.format_exc()), 
                 "Unicode Error", 0)
         raise
     #We start off getting the end event and the instrument ticks
