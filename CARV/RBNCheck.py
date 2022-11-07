@@ -1392,8 +1392,8 @@ def handle_vocals(content, part_name ):
                         debug_extra(output_syllable, True)
 
                         for character in output_syllable:
-                            if ( ord(character) > 128  ):
-                                debug("ERROR: Non-ASCII character in syllable {} at {}".format( syllable.strip(),
+                            if ( ord(character) > 255  ):
+                                debug("ERROR: Non-Latin-1 character in syllable {} at {}".format( syllable.strip(),
                                 format_location( od_midi_note.pos ) ), True)
                                 output_syllable = '<span class="alert-error" title="Found Non-ASCII character ' + str(ord(character)) + ' in syllable"><strong>{}</strong></span> '.format( syllable.strip() )
                                 has_error = True
