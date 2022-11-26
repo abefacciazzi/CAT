@@ -1339,7 +1339,7 @@ def handle_vocals(content, part_name ):
         reserved_words = ['[play]','[mellow]','[intense]','[idle]','[idle_intense]','[idle_realtime]'\
             ,'[tambourine_start]','[tambourine_end]','[cowbell_start]','[cowbell_end]','[clap_start]','[clap_end]']
 
-        reserved_syllables = ["I","I'm","I'ma","I'mma","I'll","I'd","God"]
+        reserved_syllables = ["I","I'm","I'ma","I'mma","I'll","I'd","I've","God"]
 
         punctuation = ['?','!']
 
