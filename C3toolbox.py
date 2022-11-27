@@ -1664,10 +1664,10 @@ def create_animation_markers(instrument, expression, pause, mute):
                         location = note[1]+note[4] #Let's reset location right away
             #correct_tqn after the last valid expert note we drop the [idle_realtime] marker
             array_temp.append(['<X', location+correct_tqn, '0', '[idle_realtime]', '>', 'ff01'])
+            #PM(array_temp)
+            write_midi(instrument, [array_notesevents[0], array_temp], end_part, start_part)
         else:
             PM("no go")
-        #PM(array_temp)
-        write_midi(instrument, [array_notesevents[0], array_temp], end_part, start_part)
 
 def fix_sustains(instrument, level, fix, selected):
     #This function removes too short sustains. With fix = 1 it also shortens sustains based on instrument, difficulty and BPM.
