@@ -2317,17 +2317,16 @@ while project_time_signature_next_time != -1:
     (NULL, NULL, NULL, _measureposOut, NULL, NULL, NULL) = RPR_TimeMap2_timeToBeats(0, project_time_signature_location_time, 0, 0, 0, 0)
 
     # Check to see if the time signature actually changed
-    if _project_time_signature_num != project_time_signature_num:
-        if _project_time_signature_denom != project_time_signature_denom:
+    if _project_time_signature_num != project_time_signature_num or _project_time_signature_denom != project_time_signature_denom:
 
-            project_time_signature_num = _project_time_signature_num
-            project_time_signature_denom = _project_time_signature_denom
+        project_time_signature_num = _project_time_signature_num
+        project_time_signature_denom = _project_time_signature_denom
 
-            # Add our results to the list.
-            project_time_signature_location.append(_ticks)
-            project_time_signature_location_measure.append(_measureposOut)
-            project_time_signature_location_num.append(project_time_signature_num)
-            project_time_signature_location_denom.append(project_time_signature_denom)
+        # Add our results to the list.
+        project_time_signature_location.append(_ticks)
+        project_time_signature_location_measure.append(_measureposOut)
+        project_time_signature_location_num.append(project_time_signature_num)
+        project_time_signature_location_denom.append(project_time_signature_denom)
     
     # Get the next change.
     project_time_signature_next_time = RPR_TimeMap2_GetNextChangeTime(0,project_time_signature_location_time)
