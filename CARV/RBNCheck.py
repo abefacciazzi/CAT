@@ -1376,16 +1376,16 @@ def handle_vocals(content, part_name ):
                         syllable = str(lyric_positions[ od_midi_note.pos ]) + ' '
                         debug_extra(syllable, True)
 
+                        # Remove or replace any game specific characters from the syllable before we work with it.
+                        syllable = syllable.replace("$", "")
+                        syllable = syllable.replace("- ", "")
+                        syllable = syllable.replace("= ", "-")
+
                         # Check if any spoken characters exist, so we can make them italic later.
                         if syllable.endswith("^ ") or syllable.endswith("# "):
                             syllable = syllable.replace("^ ", " ")
                             syllable = syllable.replace("# ", " ")
                             is_spoken = True
-
-                        # Remove or replace any game specific characters from the syllable before we work with it.
-                        syllable = syllable.replace("$", "")
-                        syllable = syllable.replace("- ", "")
-                        syllable = syllable.replace("= ", "-")
 
                         # At this stage the output is the same as the syllable.
                         output_syllable = syllable
