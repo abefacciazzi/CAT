@@ -1,6 +1,6 @@
 # -*- coding: cp1252 -*-
 # -*- additions by: Alternity, kueller -*-
-from reaper_python import *
+import traceback
 import operator
 import decimal
 import base64
@@ -9,6 +9,15 @@ import binascii
 import os
 import re
 import sys
+
+import reaper_python as rpy
+
+# Override this internal REAPER function to ignore unicode.
+def rpr_unpacks(v):
+    return str(v.value.decode('ascii', 'ignore'))
+
+rpy.rpr_unpacks = rpr_unpacks
+
 from C3notes import *
 
 global end_event
@@ -766,6 +775,7 @@ def prep_tracks():
         chunk = ""
         instrument = ""
         (boolvar, mi, chunk, maxlen) = RPR_GetSetItemState(mi, chunk, maxlen)
+        
         #CYCLING THROUGH ALL TRACKS TO FIND THOSE RELEVANT
         #This check needs to go off everytime a command is issued because if the user changes position of the tracks the IDs change
         if "PART BASS" == trackname:
@@ -1654,10 +1664,10 @@ def create_animation_markers(instrument, expression, pause, mute):
                         location = note[1]+note[4] #Let's reset location right away
             #correct_tqn after the last valid expert note we drop the [idle_realtime] marker
             array_temp.append(['<X', location+correct_tqn, '0', '[idle_realtime]', '>', 'ff01'])
+            #PM(array_temp)
+            write_midi(instrument, [array_notesevents[0], array_temp], end_part, start_part)
         else:
             PM("no go")
-        #PM(array_temp)
-        write_midi(instrument, [array_notesevents[0], array_temp], end_part, start_part)
 
 def fix_sustains(instrument, level, fix, selected):
     #This function removes too short sustains. With fix = 1 it also shortens sustains based on instrument, difficulty and BPM.
@@ -3665,7 +3675,7 @@ def check_capitalization(instrument, selected):
                     result = 1
                     check = 1
                     #If we find both, we ask the user whether to abort or proceed
-                    result = RPR_MB( "The first word in this phrase ("+event[3]+") is not capitalized. Capitalize it?", "Lower case found", 1 )
+                    result = RPR_MB( "The first word in this phrase ("+event[3].decode('ascii', 'ignore')+") is not capitalized. Capitalize it?", "Lower case found", 1 )
                     if result == 1:
                         if quotes == 0:
                             event[3] = event[3].capitalize()
@@ -3683,7 +3693,7 @@ def check_capitalization(instrument, selected):
                     result = 1
                     check = 1
                     #If we find both, we ask the user whether to abort or proceed
-                    result = RPR_MB( "A word in the middle of the phrase is capitalized ("+event[3]+"). Make it lower case?", "Upper case found", 1 )
+                    result = RPR_MB( "A word in the middle of the phrase is capitalized ("+event[3].decode('ascii', 'ignore')+"). Make it lower case?", "Upper case found", 1 )
                     if result == 1:
                         if quotes == 0:
                             event[3] = event[3].lower()
@@ -5574,10 +5584,10 @@ def startup():
     try:
         prep_tracks()
     except UnicodeDecodeError:
-        RPR_MB("Invalid file name found in one of your tracks. "\
-                "Make sure there are no items with special characters in your project. \n\n"\
-                "The culprit is usually the song file itself. Look for accents and symbols. " \
-                "You can rename an item in Item Properties (F2).", 
+
+        RPR_MB("Unicode Error caught."\
+                "\n\nPlease screenshot this error and report it. \n\n"
+                +str(traceback.format_exc()), 
                 "Unicode Error", 0)
         raise
     #We start off getting the end event and the instrument ticks

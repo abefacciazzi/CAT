@@ -40,6 +40,8 @@ notesname_array = {
     121 : ["BRE", "bre"],
     120 : ["BRE", "bre"],
     116 : ["Overdrive", "od"],
+    106 : ["Tug Of War P2", "markers"],
+    105 : ["Tug Of War P1", "markers"],
     103 : ["Solo Marker", "solo"],
     102 : ["Expert Force HOPO Off", "markers"],
     101 : ["Expert Force HOPO On", "markers"],
@@ -99,6 +101,8 @@ notesname_array = {
 	112 : ["Toms Gems Green", "markers", "G"],
 	111 : ["Tom Gems Blue", "markers", "B"],
 	110 : ["Toms Gems Yellow", "markers", "Y"],
+	106 : ["Tug Of War P2", "markers"],
+    105 : ["Tug Of War P1", "markers"],
 	103 : ["Solo Marker", "solo"],
 	100 : ["Expert Green", "notes_x", "G"],
 	99 : ["Expert Blue", "notes_x", "B"],
@@ -152,6 +156,7 @@ notesname_array = {
     "VOCALS" :
     {
 	116: ["Overdrive", "od"],
+	106 : ["Phrase Marker P2", "phrase"],
 	105: ["Phrase Marker", "phrase"],
 	97:	["Non-Displayed Percussion", "percussion"],
 	96:	["Displayed Percussion", "percussion"],
