@@ -1,0 +1,178 @@
+
+.alert {
+    padding: 4px 35px 4px 14px;
+    margin-bottom: 8px;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+    background-color: #fff;
+    border: 1px solid #f3c200;
+    border-left: 8px solid #f3c200;
+    vertical-align: center;
+    border-radius: 0;
+    font-weight: bold;
+}
+
+.alert-info {
+    background-color: #d9edf7;
+    border-color: #6ebcf0;
+    color: #3a87ad;
+}
+
+.alert-danger,
+.alert-error {
+    background-color: #f8e1e1;
+    border-color: #eb6579;
+    color: #b94a48;
+}
+
+
+body {
+    margin: 0;
+    font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 20px;
+    color: #333333;
+    background-color: #2f373e;
+    display: block;
+}
+
+
+/* Filename title */
+h3,
+title {
+    font-size: 24px;
+    line-height: 40px;
+    margin: 0;
+    padding-top: 0px;
+    padding-bottom: 0px;
+}
+
+/* Navigation tab overrides */
+.nav-tabs {
+    margin-top: 0px;
+    margin-bottom: 1px;
+    border-bottom: 0px;
+}
+
+.nav-tabs>li>a {
+    color: #ffffff;
+    background-color: #39424a;
+    padding-right: 12px;
+    padding-left: 12px;
+    margin-right: 2px;
+    line-height: 20px;
+    border: none;
+    -webkit-border-radius: 0px 0px 0 0;
+    -moz-border-radius: 0px 0px 0 0;
+    border-radius: 0px 0px 0 0;
+}
+
+.nav-tabs>li>a:hover {
+    color: #000000;
+    border: none;
+}
+
+.nav-tabs>.active>a,
+.nav-tabs>.active>a:hover {
+    color: #555555;
+    background-color: #ffffff;
+    border: none;
+    cursor: default;
+}
+
+
+/* Tab icon overrides */
+.icon-exclamation-sign {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    *margin-right: .3em;
+    line-height: 14px;
+    vertical-align: middle;
+    background-image: url("img/glyphicons-halflings-white.png");
+    background-position: 0 -120px;
+    background-repeat: no-repeat;
+    margin-top: 0px;
+}
+
+.nav-tabs>li>a:hover>[class^="icon-"] {
+    background-image: url(img/glyphicons-halflings.png);
+}
+
+.nav-tabs>.active>a>[class^="icon-"] {
+    background-image: url(img/glyphicons-halflings.png);
+}
+
+
+/* Main overrides */
+
+/* Inner area */
+.row-fluid .span9 {
+    width: 100%;
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-top: 16px;
+    padding-bottom: 16px;
+}
+
+/* Contents */
+.row-fluid .span12,
+.instrument-details {
+    width: 100%;
+    min-height: 24px;
+    padding-left: 0px;
+}
+.tab-content {
+    padding-left: 16px;
+}
+
+/* At a glance */
+.row-fluid .span2,
+.at-a-glance {
+    width: 200px;
+    border: 1px solid #e3e3e3;
+    padding: 9px;
+}
+
+.sidebar-nav,
+.nav-list {
+    border: 0px;
+    padding: 0px;
+}
+
+.well {
+    margin: 0px;
+    background-color: transparent;
+    -webkit-border-radius: 0px 0px 0 0;
+    -moz-border-radius: 0px 0px 0 0;
+    border-radius: 0px 0px 0 0;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+}
+
+/* Resizing */
+
+@media (max-width: 979px) {
+    .nav-tabs {
+        font-size: 10px;
+    }
+}
+
+@media (max-width: 767px) {
+    .row-fluid .span2,
+    .at-a-glance {
+        float: none;
+        width: 100%;
+    }
+    .at-a-glance-list,
+    .nav-list {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+    }
+    .tab-content,
+    .instrument-details {
+        padding-top: 16px;
+        padding-left: 0px;
+    }
+}

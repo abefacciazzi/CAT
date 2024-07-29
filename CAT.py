@@ -70,6 +70,14 @@ def execute_this(function):
         root.destroy()
         subwindow.launch()
     
+def RunCARV():
+    global root
+    root.destroy()
+
+    tempDirectory = (str(sys.path[0]) + "/CARV")
+    sys.path.insert(0,tempDirectory)
+    import RBNCheck
+
 if __name__ == '__main__':
     root = Tkinter.Tk()
     root.wm_title('C3 Reaper Automation Project')
@@ -245,9 +253,15 @@ if __name__ == '__main__':
 
     ReduceFromBasicGtrBtn = Tkinter.Button(secPGB, text="Reduce from 5-lane", command= lambda: execute_this("remove_notes_pg"))
     ReduceFromBasicGtrBtn.grid(row=1, column=4, rowspan=1, sticky="WE", padx=5, pady=2)
+    secValidation = Tkinter.LabelFrame(root, text=" Validation: ")
+    secValidation.grid(row=6, columnspan=5, sticky='WE', \
+                 padx=5, pady=5, ipadx=5, ipady=5)
+
+    CARVBtn = Tkinter.Button(secValidation, text="Run C3 Automatic Rules Validator (CARV)", command=RunCARV )
+    CARVBtn.grid(row=1, column=1, rowspan=1, sticky="WE", padx=5, pady=2)
 
     logo = Tkinter.Frame(root, bg="#000")
-    logo.grid(row=7, column=0, columnspan=10, sticky='WE', \
+    logo.grid(row=9, column=0, columnspan=10, sticky='WE', \
                  padx=0, pady=0, ipadx=0, ipady=0)
 
     path = os.path.join( sys.path[0], "banner.gif" )
