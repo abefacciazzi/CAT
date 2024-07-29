@@ -1,6 +1,7 @@
 # -*- coding: cp1252 -*-
 # -*- additions by: Alternity, kueller -*-
 from reaper_python import *
+import traceback
 import operator
 import decimal
 import base64
@@ -9,6 +10,15 @@ import binascii
 import os
 import re
 import sys
+
+import reaper_python as rpy
+
+# Override this internal REAPER function to ignore unicode.
+def rpr_unpacks(v):
+    return str(v.value.decode('ascii', 'ignore'))
+
+rpy.rpr_unpacks = rpr_unpacks
+
 from C3notes import *
 
 global end_event
@@ -212,7 +222,10 @@ def log(function, var):
         #with open ("log.txt", "a") as myfile:
             #myfile.write("appended text")
     a=5
-            
+
+def exit_exception(exception):
+    RPR_MB("CAT ran into an unexpected error.\n\n" + traceback.format_exc(), "Unhandled error", 0)
+
 def get_curr_project_filename():
     proj = RPR_EnumProjects(-1, "", 512)
     if proj[2] == "":
@@ -766,6 +779,7 @@ def prep_tracks():
         chunk = ""
         instrument = ""
         (boolvar, mi, chunk, maxlen) = RPR_GetSetItemState(mi, chunk, maxlen)
+        
         #CYCLING THROUGH ALL TRACKS TO FIND THOSE RELEVANT
         #This check needs to go off everytime a command is issued because if the user changes position of the tracks the IDs change
         if "PART BASS" == trackname:
@@ -1654,10 +1668,10 @@ def create_animation_markers(instrument, expression, pause, mute):
                         location = note[1]+note[4] #Let's reset location right away
             #correct_tqn after the last valid expert note we drop the [idle_realtime] marker
             array_temp.append(['<X', location+correct_tqn, '0', '[idle_realtime]', '>', 'ff01'])
+            #PM(array_temp)
+            write_midi(instrument, [array_notesevents[0], array_temp], end_part, start_part)
         else:
             PM("no go")
-        #PM(array_temp)
-        write_midi(instrument, [array_notesevents[0], array_temp], end_part, start_part)
 
 def fix_sustains(instrument, level, fix, selected):
     #This function removes too short sustains. With fix = 1 it also shortens sustains based on instrument, difficulty and BPM.
@@ -3118,6 +3132,189 @@ def reduce_chords(instrument, level, option, selected):
     array_notes = add_objects(array_notes, array_validobjects)
     write_midi(instrument, [array_notes, array_events], end_part, start_part)
 
+def reduce_by_pattern(instrument, level):
+
+    def shift_to_zero(note_array):
+        shifted_array = []
+        start_position = note_array[0][1]
+        measure_offset = mbt(int(note_array[0][1]))[3] # [3], ticks relative to start of measure
+        for note in note_array:
+            offset_note = note[:] # Copy to not affect the old data
+            offset_note[1] = note[1] - start_position + measure_offset # Setting absolute location of offset
+            shifted_array.append(offset_note)
+        return shifted_array
+
+    def get_valid_notes_in_diff_range(i, notes, notes_dict, leveltxt, num_of_measures):
+        array_valid = []
+
+        current_measure = mbt(int(notes[i][1]))[0]
+        stop_measure = current_measure + num_of_measures
+        while current_measure < stop_measure:
+            if i >= len(notes):
+                break
+
+            note = notes[i]
+
+            diff = notes_dict[note[2]][1]
+            if diff == leveltxt:
+                array_valid.append(note)
+            current_measure = mbt(int(note[1]))[0]
+            i = i + 1
+
+        return array_valid
+
+    def notes_equal_to_reference(zeroed_notes_array, ref_x_notes):
+        if len(zeroed_notes_array) != len(ref_x_notes):
+            return False
+
+        # The reference notes are set to selected and the checked notes are not
+        # So have to compare values while ignoring the selected status
+        for i in range(0, len(zeroed_notes_array)):
+            if zeroed_notes_array[i][1:] != ref_x_notes[i][1:]:
+                return False
+
+        return True
+
+    def compare_measures(i, notes, notes_dict, ref_x_notes, num_of_measures):
+        array_valid = get_valid_notes_in_diff_range(i, notes, notes_dict, "notes_x", num_of_measures)
+
+        if len(array_valid) == 0:
+            return False
+
+        valid_notes_zeroed = shift_to_zero(array_valid)
+
+        return notes_equal_to_reference(valid_notes_zeroed, ref_x_notes)
+
+    instrument = tracks_array[instrument]
+    array_instrument_data = process_instrument(instrument)
+    array_instrument_notes = array_instrument_data[1]
+    end_part = array_instrument_data[2]
+    start_part = array_instrument_data[3]
+    array_notesevents = create_notes_array(array_instrument_notes)
+    array_notes = array_notesevents[0]
+    array_events = array_notesevents[1]
+    
+    instrumentname = ''
+
+    for instrument_name, instrument_id in tracks_array.iteritems():
+        if instrument_id == instrument:
+            instrumentname = instrument_name
+    leveltext = "notes_"+level
+    notes_dict = notesname_array[notesname_instruments_array[instrumentname]]
+
+    # This requires there to be selected measures, 
+    # so function will exit if nothing is selected.
+    notes_range = selected_range(array_notes)
+    PM("Notes range:\n" + str(notes_range) + "\n")
+    if notes_range[0] == "unset":
+        RPR_MB("No selected range found in the specified instrument. Please select a range of notes to reduce from.", "No selection", 0)
+        return
+
+    first_measure = mbt(int(selected_range(array_notes)[0]))[0]
+    last_measure = mbt(int(selected_range(array_notes)[1]))[0]
+    diff_measures = last_measure - first_measure + 1
+
+    array_x_range_absolute_pos = []
+    array_reduced_range_absolute_pos = []
+
+    # Collect the expert notes that will be compared
+    # and the lower diff notes to base the reductions from.
+    for note in array_notes:
+        if note[2] not in notes_dict:
+            invalid_note_mb(note, instrumentname)
+            return
+        this_measure = mbt(int(note[1]))[0]
+        if this_measure >= first_measure and this_measure <= last_measure:
+            diff = notes_dict[note[2]][1]
+            if diff == leveltext:
+                array_reduced_range_absolute_pos.append(note)
+            elif diff == "notes_x":
+                array_x_range_absolute_pos.append(note)
+
+    selected_measures = []
+    for note in array_x_range_absolute_pos:
+        selected_measures.append(mbt(note[1])[0])
+
+    selected_measures = set(selected_measures)
+    min_measure = mbt(int(array_notes[0][1]))[0]
+
+    PM("selected_measures: " + str(selected_measures) + "\n")
+
+    # For searching purposes, there is no point in searching if the
+    # number of remaining measures is smaller than the measures to compare with
+    max_measure = mbt(int(array_notes[-1][1]))[0] - (last_measure - first_measure - 1)
+
+    # Set the absolute positions starting from zero 
+    # so they can be used with offsets later.
+    array_x_range = shift_to_zero(array_x_range_absolute_pos)
+    array_reduced_range = shift_to_zero(array_reduced_range_absolute_pos)
+
+    PM("Expert array:\n" + "\n".join([str(x) for x in array_x_range_absolute_pos]) + "\n\n")
+    PM("Reduced array:\n" + "\n".join([str(x) for x in array_reduced_range_absolute_pos]) + "\n\n")
+
+    PM("Expert zeroed array:\n" + "\n".join([str(x) for x in array_x_range]) + "\n\n")
+    PM("Reduced zeroed array:\n" + "\n".join([str(x) for x in array_reduced_range]) + "\n\n")
+
+    # Convert to objects so chords are one element
+    array_x_objects = note_objects(array_x_range)
+    array_reduced_objects = note_objects(array_reduced_range)
+
+    PM("Expert zeroed object array:\n" + "\n".join([str(x) for x in array_x_objects]) + "\n\n")
+    PM("Reduced zeroed object array:\n" + "\n".join([str(x) for x in array_reduced_objects]) + "\n\n")
+
+    # Will check measure by measure to find a match
+    # When a match is found, existing notes will be added to a
+    # deletion queue and the pattern will be added to an addition
+    # queue.
+    array_todelete = []
+    array_toadd = []
+
+    modified = 0
+    measures_changed = []
+
+    prev_measure = min_measure - 1
+    for i in range(0, len(array_notes)):
+        note = array_notes[i]
+
+        this_measure = mbt(int(note[1]))[0]
+        if this_measure > max_measure:
+            break
+
+        if this_measure in selected_measures:
+            continue
+
+        if this_measure != prev_measure:
+            match = compare_measures(i, array_notes, notes_dict, array_x_range, diff_measures)
+
+            if match:
+                PM("Matched measure: " + str(mbt(int(note[1]))[0]) + "\n")
+                range_todelete = get_valid_notes_in_diff_range(i, array_notes, notes_dict, leveltext, diff_measures)
+                array_todelete += range_todelete
+
+                offset = note[1]
+                for reduced_note in array_reduced_range:
+                    offset_note = reduced_note[:]
+                    offset_note[1] = reduced_note[1] + offset
+                    array_toadd.append(offset_note)
+
+                modified = modified + 1
+                measures_changed.append(this_measure)
+
+            prev_measure = this_measure
+
+    output_message = "Replaced {} matched patterns.".format(modified)
+
+    if modified > 0:
+        for i in range(0, len(array_todelete)):
+            array_notes.remove(array_todelete[i])
+
+        array_notes = add_objects(array_notes, note_objects(array_toadd))
+        write_midi(instrument, [array_notes, array_events], end_part, start_part)
+
+        output_message = "{}\nAt measures: {}".format(output_message, ", ".join([str(measure) for measure in measures_changed]))
+
+    RPR_MB(output_message, "Completed", 0)
+
 def edit_by_mbt(instrument, level, measure, beat, tick, notes, selected):
     #Measure, beat and tick: 0 for any, a number for specific measure or specific beat
     #0.1.50 removes note from any measure, beat 1, first eighth note
@@ -3517,7 +3714,7 @@ def check_capitalization(instrument, selected):
                     result = 1
                     check = 1
                     #If we find both, we ask the user whether to abort or proceed
-                    result = RPR_MB( "The first word in this phrase ("+event[3]+") is not capitalized. Capitalize it?", "Lower case found", 1 )
+                    result = RPR_MB( "The first word in this phrase ("+event[3].decode('ascii', 'ignore')+") is not capitalized. Capitalize it?", "Lower case found", 1 )
                     if result == 1:
                         if quotes == 0:
                             event[3] = event[3].capitalize()
@@ -3535,7 +3732,7 @@ def check_capitalization(instrument, selected):
                     result = 1
                     check = 1
                     #If we find both, we ask the user whether to abort or proceed
-                    result = RPR_MB( "A word in the middle of the phrase is capitalized ("+event[3]+"). Make it lower case?", "Upper case found", 1 )
+                    result = RPR_MB( "A word in the middle of the phrase is capitalized ("+event[3].decode('ascii', 'ignore')+"). Make it lower case?", "Upper case found", 1 )
                     if result == 1:
                         if quotes == 0:
                             event[3] = event[3].lower()
@@ -5426,10 +5623,10 @@ def startup():
     try:
         prep_tracks()
     except UnicodeDecodeError:
-        RPR_MB("Invalid file name found in one of your tracks. "\
-                "Make sure there are no items with special characters in your project. \n\n"\
-                "The culprit is usually the song file itself. Look for accents and symbols. " \
-                "You can rename an item in Item Properties (F2).", 
+
+        RPR_MB("Unicode Error caught."\
+                "\n\nPlease screenshot this error and report it. \n\n"
+                +str(traceback.format_exc()), 
                 "Unicode Error", 0)
         raise
     #We start off getting the end event and the instrument ticks
