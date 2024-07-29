@@ -19,7 +19,10 @@ def execute():
     C3toolbox.PM("inst: {}\n".format(instrument))
     C3toolbox.PM("diff: {}\n".format(diff))
 
-    C3toolbox.reduce_by_pattern(instrument, diff)
+    try:
+        C3toolbox.reduce_by_pattern(instrument, diff)
+    except Exception as e:
+        C3toolbox.exit_exception(e)
     form.destroy()
 
 def launch():
@@ -75,7 +78,7 @@ def launch():
     helpLf.grid(row=0, column=9, columnspan=1, rowspan=2, \
                 sticky='NS', padx=5, pady=5)
     helpLbl = Tkinter.Label(helpLf, 
-            text="Reduce one or more measures, select those measures,\nand run to apply the same reduction on every identical\nset of measures.\n\n\n",
+            text="Reduce one or more measures, select those measures on\nexpert, and then run to apply the same reduction on every\nidentical set of measures.\n\n\n",
             justify='left')
     helpLbl.grid(row=0, columnspan=1, column=9, sticky='W')
 

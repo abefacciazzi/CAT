@@ -1,5 +1,6 @@
 # -*- coding: cp1252 -*-
 # -*- additions by: Alternity, kueller -*-
+from reaper_python import *
 import traceback
 import operator
 import decimal
@@ -221,7 +222,10 @@ def log(function, var):
         #with open ("log.txt", "a") as myfile:
             #myfile.write("appended text")
     a=5
-            
+
+def exit_exception(exception):
+    RPR_MB("CAT ran into an unexpected error.\n\n" + traceback.format_exc(), "Unhandled error", 0)
+
 def get_curr_project_filename():
     proj = RPR_EnumProjects(-1, "", 512)
     if proj[2] == "":
@@ -3132,11 +3136,11 @@ def reduce_by_pattern(instrument, level):
 
     def shift_to_zero(note_array):
         shifted_array = []
-        offset = note_array[0][1]
-        measure_offset = mbt(int(note_array[0][1]))[3]
+        start_position = note_array[0][1]
+        measure_offset = mbt(int(note_array[0][1]))[3] # [3], ticks relative to start of measure
         for note in note_array:
             offset_note = note[:] # Copy to not affect the old data
-            offset_note[1] = note[1] - offset + measure_offset
+            offset_note[1] = note[1] - start_position + measure_offset # Setting absolute location of offset
             shifted_array.append(offset_note)
         return shifted_array
 
@@ -3144,7 +3148,7 @@ def reduce_by_pattern(instrument, level):
         array_valid = []
 
         current_measure = mbt(int(notes[i][1]))[0]
-        stop_measure = current_measure + num_of_measures + 1
+        stop_measure = current_measure + num_of_measures
         while current_measure < stop_measure:
             if i >= len(notes):
                 break
@@ -3159,16 +3163,27 @@ def reduce_by_pattern(instrument, level):
 
         return array_valid
 
-    def compare_measures(i, notes, notes_dict, x_objects, num_of_measures):
+    def notes_equal_to_reference(zeroed_notes_array, ref_x_notes):
+        if len(zeroed_notes_array) != len(ref_x_notes):
+            return False
+
+        # The reference notes are set to selected and the checked notes are not
+        # So have to compare values while ignoring the selected status
+        for i in range(0, len(zeroed_notes_array)):
+            if zeroed_notes_array[i][1:] != ref_x_notes[i][1:]:
+                return False
+
+        return True
+
+    def compare_measures(i, notes, notes_dict, ref_x_notes, num_of_measures):
         array_valid = get_valid_notes_in_diff_range(i, notes, notes_dict, "notes_x", num_of_measures)
 
         if len(array_valid) == 0:
             return False
 
-        valid_offset = shift_to_zero(array_valid)
-        valid_objects = note_objects(valid_offset)
+        valid_notes_zeroed = shift_to_zero(array_valid)
 
-        return valid_objects == x_objects
+        return notes_equal_to_reference(valid_notes_zeroed, ref_x_notes)
 
     instrument = tracks_array[instrument]
     array_instrument_data = process_instrument(instrument)
@@ -3190,13 +3205,14 @@ def reduce_by_pattern(instrument, level):
     # This requires there to be selected measures, 
     # so function will exit if nothing is selected.
     notes_range = selected_range(array_notes)
+    PM("Notes range:\n" + str(notes_range) + "\n")
     if notes_range[0] == "unset":
         RPR_MB("No selected range found in the specified instrument. Please select a range of notes to reduce from.", "No selection", 0)
         return
 
     first_measure = mbt(int(selected_range(array_notes)[0]))[0]
     last_measure = mbt(int(selected_range(array_notes)[1]))[0]
-    diff_measures = last_measure - first_measure
+    diff_measures = last_measure - first_measure + 1
 
     array_x_range_absolute_pos = []
     array_reduced_range_absolute_pos = []
@@ -3215,10 +3231,14 @@ def reduce_by_pattern(instrument, level):
             elif diff == "notes_x":
                 array_x_range_absolute_pos.append(note)
 
-    PM("\nlen expert range: {}\n".format(len(array_x_range_absolute_pos)))
-    PM("len reduced range: {}\n".format(len(array_reduced_range_absolute_pos)))
+    selected_measures = []
+    for note in array_x_range_absolute_pos:
+        selected_measures.append(mbt(note[1])[0])
 
+    selected_measures = set(selected_measures)
     min_measure = mbt(int(array_notes[0][1]))[0]
+
+    PM("selected_measures: " + str(selected_measures) + "\n")
 
     # For searching purposes, there is no point in searching if the
     # number of remaining measures is smaller than the measures to compare with
@@ -3229,9 +3249,18 @@ def reduce_by_pattern(instrument, level):
     array_x_range = shift_to_zero(array_x_range_absolute_pos)
     array_reduced_range = shift_to_zero(array_reduced_range_absolute_pos)
 
+    PM("Expert array:\n" + "\n".join([str(x) for x in array_x_range_absolute_pos]) + "\n\n")
+    PM("Reduced array:\n" + "\n".join([str(x) for x in array_reduced_range_absolute_pos]) + "\n\n")
+
+    PM("Expert zeroed array:\n" + "\n".join([str(x) for x in array_x_range]) + "\n\n")
+    PM("Reduced zeroed array:\n" + "\n".join([str(x) for x in array_reduced_range]) + "\n\n")
+
     # Convert to objects so chords are one element
     array_x_objects = note_objects(array_x_range)
     array_reduced_objects = note_objects(array_reduced_range)
+
+    PM("Expert zeroed object array:\n" + "\n".join([str(x) for x in array_x_objects]) + "\n\n")
+    PM("Reduced zeroed object array:\n" + "\n".join([str(x) for x in array_reduced_objects]) + "\n\n")
 
     # Will check measure by measure to find a match
     # When a match is found, existing notes will be added to a
@@ -3241,6 +3270,7 @@ def reduce_by_pattern(instrument, level):
     array_toadd = []
 
     modified = 0
+    measures_changed = []
 
     prev_measure = min_measure - 1
     for i in range(0, len(array_notes)):
@@ -3250,10 +3280,14 @@ def reduce_by_pattern(instrument, level):
         if this_measure > max_measure:
             break
 
+        if this_measure in selected_measures:
+            continue
+
         if this_measure != prev_measure:
-            match = compare_measures(i, array_notes, notes_dict, array_x_objects, diff_measures)
+            match = compare_measures(i, array_notes, notes_dict, array_x_range, diff_measures)
 
             if match:
+                PM("Matched measure: " + str(mbt(int(note[1]))[0]) + "\n")
                 range_todelete = get_valid_notes_in_diff_range(i, array_notes, notes_dict, leveltext, diff_measures)
                 array_todelete += range_todelete
 
@@ -3264,17 +3298,22 @@ def reduce_by_pattern(instrument, level):
                     array_toadd.append(offset_note)
 
                 modified = modified + 1
+                measures_changed.append(this_measure)
 
             prev_measure = this_measure
 
-    for i in range(0, len(array_todelete)):
-        array_notes.remove(array_todelete[i])
-
-    array_notes = add_objects(array_notes, note_objects(array_toadd))
-    write_midi(instrument, [array_notes, array_events], end_part, start_part)
+    output_message = "Replaced {} matched patterns.".format(modified)
 
     if modified > 0:
-        RPR_MB("Replaced {} matched patterns.".format(modified), "Completed", 0)
+        for i in range(0, len(array_todelete)):
+            array_notes.remove(array_todelete[i])
+
+        array_notes = add_objects(array_notes, note_objects(array_toadd))
+        write_midi(instrument, [array_notes, array_events], end_part, start_part)
+
+        output_message = "{}\nAt measures: {}".format(output_message, ", ".join([str(measure) for measure in measures_changed]))
+
+    RPR_MB(output_message, "Completed", 0)
 
 def edit_by_mbt(instrument, level, measure, beat, tick, notes, selected):
     #Measure, beat and tick: 0 for any, a number for specific measure or specific beat
